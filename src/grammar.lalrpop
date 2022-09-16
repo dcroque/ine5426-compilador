@@ -1,0 +1,42 @@
+use std::str::FromStr;
+
+grammar;
+
+pub identifier: () = {
+    r"[a-zA-Z][a-zA-Z0-9]*",
+};
+
+pub semicolon: () = {
+    ";",
+};
+
+pub comma: () = {
+    ",",
+};
+
+pub addop: () = {
+    "+",
+    "-",
+};
+
+pub mulop: () = {
+    "*",
+    "/",
+};
+
+pub relop: () = {
+    "=",
+    "<>",
+    "<",
+    ">",
+    "<=",
+    ">=",
+};
+
+
+
+pub constant_type: () = {
+    "int",
+    "string",
+    "float",
+};
