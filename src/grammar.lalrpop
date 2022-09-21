@@ -1,10 +1,160 @@
-use std::str::FromStr;
-
 grammar;
 
-pub identifier: () = {
+pub file: () = {
+    program,
+};
+
+// PROGRAM -> (STATEMENT | FUNCLIST)?
+pub program: () = {
+    statement,
+    funclist,
+};
+
+// FUNCLIST -> FUNCDEFFUNCLIST | FUNCDEF
+pub funclist: () = {
+    funcdef funclist,
+    funcdef,
+};
+
+// FUNCDEF -> def ident(PARAMLIST){STATELIST }
+pub funcdef: () = {
+    "def" ident oparenth paramlist cparenth obrack statelist cbrack
+};
+
+// PARAMLIST -> ((int | float | string) ident, PARAMLIST | (int | float | string) ident)?
+pub paramlist: () = {
+    vartype ident comma paramlist,
+    vartype ident,
+};
+// STATEMENT -> (VARDECL; | ATRIBSTAT; |  PRINTSTAT; | READSTAT; | RETURNSTAT; | IFSTAT | FORSTAT | {STATELIST } | break; |;)
+pub statement: () = {
+    vardecl semicolon,
+    attribstat semicolon,
+    printstat semicolon,
+    readstat semicolon,
+    returnstat semicolon,
+    ifstat,
+    forstat,
+    obrack statelist cbrack,
+    "break" semicolon,
+    semicolon,
+};
+// TO-DO: VARDECL -> (int | float | string) ident ([int_constant])*
+pub vardecl: () = {
+    vartype ident,
+    vardecl obrack int_constant cbrack,
+};
+
+// ATRIBSTAT -> LVALUE = (EXPRESSION | ALLOCEXPRESSION | FUNCCALL)
+pub attribstat: () = {
+    lvalue attrib expression,
+    lvalue attrib allocexpression,
+    lvalue attrib funccall,
+};
+
+// FUNCCALL -> ident(PARAMLISTCALL)
+pub funccall: () = {
+    ident oparenth paramlistcall cparenth,
+};
+
+// PARAMLISTCALL -> (ident, PARAMLISTCALL | ident)?
+pub paramlistcall: () = {
+    ident comma paramlistcall,
+    ident,
+};
+
+// PRINTSTAT -> print EXPRESSION
+pub printstat: () = {
+    "print" expression,
+};
+
+// READSTAT -> read LVALUE
+pub readstat: () = {
+    "read" lvalue,
+}
+
+// RETURNSTAT -> return
+pub returnstat: () = {
+    "return",
+};
+
+// IFSTAT -> if (EXPRESSION) STATEMENT (else STATEMENT)?
+pub ifstat: () = {
+    "if" oparenth expression cparenth statement,
+    "if" oparenth expression cparenth statement "else" statement,
+};
+
+// FORSTAT -> for(ATRIBSTAT; EXPRESSION; ATRIBSTAT) STATEMENT
+pub forstat: () = {
+    "for" oparenth attribstat semicolon expression semicolon attribstat semicolon cparenth statement,
+};
+
+// STATELIST -> STATEMENT (STATELIST)?
+pub statelist: () = {
+    statement,
+    statement statelist,
+};
+
+// TO-DO: ALLOCEXPRESSION -> new (int | float | string) ([NUMEXPRESSION])+
+pub allocexpression: () = {
+    "new"    vartype,
+    allocexpression obrack numexpression cbrack,
+};
+
+// EXPRESSION -> NUMEXPRESSION ((< | > | <= | >= | == | ! =) NUMEXPRESSION)?
+pub expression: () = {
+    numexpression,
+    numexpression relop numexpression,
+};
+
+// NUMEXPRESSION -> TERM ((+ |-) TERM)*
+pub numexpression: () = {
+    term,
+    term addop term,
+};
+
+// TERM -> UNARYEXPR((* | / | %) UNARYEXPR)*
+pub term: () = {
+    unaryexpr,
+    unaryexpr mulop unaryexpr,
+};
+
+// UNARYEXPR -> ((+ | -))? FACTOR
+pub unaryexpr: () = {
+    factor,
+    addop factor
+};
+
+// FACTOR -> (int_constant | float_constant | string_constant | LVALUE |(NUMEXPRESSION))
+pub factor: () = {
+    int_constant,
+    float_constant,
+    string_constant,
+    lvalue,
+    oparenth numexpression cparenth,
+};
+
+// TO-DO: LVALUE -> ident([NUMEXPRESSION])*
+pub lvalue: () = {
+    ident,
+    lvalue obrack numexpression cbrack,
+};
+
+pub ident: () = {
     r"[a-zA-Z][a-zA-Z0-9]*",
 };
+
+pub int_constant: () = {
+    r"\d+"
+}
+
+pub float_constant: () = {
+    r"\d+\.\d*"
+}
+
+pub string_constant: () = {
+    r#"".*""#,
+}
 
 pub semicolon: () = {
     ";",
@@ -25,7 +175,7 @@ pub mulop: () = {
 };
 
 pub relop: () = {
-    "=",
+    "==",
     "<>",
     "<",
     ">",
@@ -33,10 +183,25 @@ pub relop: () = {
     ">=",
 };
 
-
-
-pub constant_type: () = {
+pub vartype: () = {
     "int",
     "string",
     "float",
-};
+}
+
+pub attrib: () = {
+    "=",
+}
+
+pub oparenth: () = {
+    "(",
+} 
+pub cparenth: () = {
+    ")",
+} 
+pub obrack: () = {
+    "[",
+} 
+pub cbrack: () = {
+    "]",
+}
