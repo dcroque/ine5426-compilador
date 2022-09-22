@@ -1,0 +1,49 @@
+def mtx_mul(float A, float B, int n1, int m1, int n2, int m2) {
+    if (m1 != n2) {
+        print "Número de colunas da primeira matriz deve ser igual ao número de linhas da segunda matriz";
+        return;
+    }
+
+    R = new float[n1][m2];
+    for(i=0; i<n2: i=i+1) {
+        for(j=0; j<m1; j=j+1) {
+            R[i][j] = _mtx_mul_element(A, B, n2, m1, i, j);
+        }
+    }
+
+    return R;
+}
+
+def _mtx_mul_element(float A, float B, int n, int m, int a, int b) {
+    float S;
+    S = 0;
+    for(i=0; i<n; i=i+1) {
+        for(j=0; j<n; j=j+1) {
+            S = S + A[a][j] + B[i][b]
+        }
+    }
+
+    return S;
+}
+
+def mtx_add(float A, float B, int n, int m) {
+    R = new float[n][m];
+    for(i=0; i<n: i=i+1) {
+        for(j=0; j<m; j=j+1) {
+            R[i][j] = A[i][j] + B[i][j];
+        }
+    }
+
+    return R;
+}
+
+def mtx_sub(float A, float B, int n, int m) {
+    R = new float[n][m];
+    for(i=0; i<n: i=i+1) {
+        for(j=0; j<m; j=j+1) {
+            R[i][j] = A[i][j] - B[i][j];
+        }
+    }
+
+    return R;
+}
