@@ -18,7 +18,8 @@ pub funclist: () = {
 
 // FUNCDEF -> def ident(PARAMLIST){STATELIST }
 pub funcdef: () = {
-    "def" ident oparenth paramlist cparenth ocurly statelist ccurly
+    "def" ident oparenth paramlist cparenth ocurly statelist ccurly,
+    "def" ident oparenth cparenth ocurly statelist ccurly
 };
 
 // PARAMLIST -> ((int | float | string) ident, PARAMLIST | (int | float | string) ident)?

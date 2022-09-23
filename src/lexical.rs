@@ -26,6 +26,13 @@ mod tests {
     use lalrpop_util::lalrpop_mod;
     lalrpop_mod!(pub grammar); // synthesized by LALRPOP
 
+    fn test_code_file(filename: &str) {
+        let contents = fs::read_to_string(filename).unwrap();
+        let result = grammar::fileParser::new().parse(&contents);
+        println!("{:?}", result);
+        assert!(result.is_ok());
+    }
+
     #[test]
     fn parse_type() {
         assert!(grammar::vartypeParser::new().parse("int").is_ok());
@@ -35,15 +42,16 @@ mod tests {
 
     #[test]
     fn parse_sample_code_1() {
-        let contents = fs::read_to_string("src/examples/code1.lcc");
-        println!("{:?}", contents);
-        assert!(contents.is_ok());
+        test_code_file("src/examples/code1.lcc")
     }
 
     #[test]
     fn parse_sample_code_2() {
-        let contents = fs::read_to_string("src/examples/code2.lcc");
-        println!("{:?}", contents);
-        assert!(contents.is_ok());
+        test_code_file("src/examples/code2.lcc")
+    }
+
+    #[test]
+    fn parse_sample_code_3() {
+        test_code_file("src/examples/code3.lcc")
     }
 }
