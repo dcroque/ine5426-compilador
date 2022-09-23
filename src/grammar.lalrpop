@@ -18,7 +18,7 @@ pub funclist: () = {
 
 // FUNCDEF -> def ident(PARAMLIST){STATELIST }
 pub funcdef: () = {
-    "def" ident oparenth paramlist cparenth obrack statelist cbrack
+    "def" ident oparenth paramlist cparenth ocurly statelist ccurly
 };
 
 // PARAMLIST -> ((int | float | string) ident, PARAMLIST | (int | float | string) ident)?
@@ -26,6 +26,7 @@ pub paramlist: () = {
     vartype ident comma paramlist,
     vartype ident,
 };
+
 // STATEMENT -> (VARDECL; | ATRIBSTAT; |  PRINTSTAT; | READSTAT; | RETURNSTAT; | IFSTAT | FORSTAT | {STATELIST } | break; |;)
 pub statement: () = {
     vardecl semicolon,
@@ -35,7 +36,7 @@ pub statement: () = {
     returnstat semicolon,
     ifstat,
     forstat,
-    obrack statelist cbrack,
+    ocurly statelist ccurly,
     "break" semicolon,
     semicolon,
 };
@@ -76,17 +77,18 @@ pub readstat: () = {
 // RETURNSTAT -> return
 pub returnstat: () = {
     "return",
+    "return" expression,
 };
 
 // IFSTAT -> if (EXPRESSION) STATEMENT (else STATEMENT)?
 pub ifstat: () = {
-    "if" oparenth expression cparenth statement,
-    "if" oparenth expression cparenth statement "else" statement,
+    "if" oparenth expression cparenth ocurly statelist ccurly,
+    "if" oparenth expression cparenth ocurly statelist ccurly "else" ocurly statelist ccurly,
 };
 
 // FORSTAT -> for(ATRIBSTAT; EXPRESSION; ATRIBSTAT) STATEMENT
 pub forstat: () = {
-    "for" oparenth attribstat semicolon expression semicolon attribstat semicolon cparenth statement,
+    "for" oparenth attribstat semicolon expression semicolon attribstat cparenth statement,
 };
 
 // STATELIST -> STATEMENT (STATELIST)?
@@ -104,19 +106,19 @@ pub allocexpression: () = {
 // EXPRESSION -> NUMEXPRESSION ((< | > | <= | >= | == | ! =) NUMEXPRESSION)?
 pub expression: () = {
     numexpression,
-    numexpression relop numexpression,
+    expression relop numexpression,
 };
 
 // NUMEXPRESSION -> TERM ((+ |-) TERM)*
 pub numexpression: () = {
     term,
-    term addop term,
+    numexpression addop term,
 };
 
 // TERM -> UNARYEXPR((* | / | %) UNARYEXPR)*
 pub term: () = {
     unaryexpr,
-    unaryexpr mulop unaryexpr,
+    term mulop unaryexpr,
 };
 
 // UNARYEXPR -> ((+ | -))? FACTOR
@@ -204,4 +206,10 @@ pub obrack: () = {
 } 
 pub cbrack: () = {
     "]",
+}
+pub ocurly: () = {
+    "{",
+}
+pub ccurly: () = {
+    "}",
 }
