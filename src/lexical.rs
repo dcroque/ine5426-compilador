@@ -1,3 +1,5 @@
+use std::fs;
+
 use lalrpop_util::lalrpop_mod;
 
 lalrpop_mod!(pub grammar); // synthesized by LALRPOP
@@ -18,10 +20,33 @@ fn parse_word(word: &str) {
     grammar::vartypeParser::new().parse(word);
 }
 
-fn parse_text() {}
+pub fn parse_code<'input>(filename: &str) {
+    let contents = fs::read_to_string(filename).unwrap();
+    let bla = grammar::fileParser::new().parse(&contents);
+    println!("{:?}", grammar::fileParser::new().parse(&contents));
+}
+
+// // Desisti dessa porcaria, por agora
+// fn parse_code<'input>(
+//     filename: &str,
+// ) -> Result<(), lalrpop_util::ParseError<usize, lalrpop_util::lexer::Token<'input>, &'static str>> {
+//     let contents = fs::read_to_string(filename).unwrap();
+//     let bla = grammar::fileParser::new()
+//         .parse(&contents)
+//         .map_err(|e| e.map_token(|tt| tt.clone()));
+
+//     bla
+// }
+
+// fn parse_code<'input>(filename: &str) -> Result<(), TrabalhoError> {
+//     let contents = fs::read_to_string(filename).unwrap();
+//     grammar::fileParser::new()
+//         .parse(&contents)
+//         .map_err(|e| ParseErrorContents::from_lalrpop_parse_error_to_error(e))
+// }
 
 mod tests {
-    use std::fs;
+    use super::*;
 
     use lalrpop_util::lalrpop_mod;
     lalrpop_mod!(pub grammar); // synthesized by LALRPOP

@@ -13,6 +13,7 @@ path = "src/lib.rs"
 lalrpop-util = "0.19.7"
 regex = "1"
 lalrpop = "0.19.7"
+clap = { version = "3.2.22", features = ["derive"] }
 
 [build-dependencies]
 lalrpop = "0.19.7"
