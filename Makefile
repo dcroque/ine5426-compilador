@@ -16,3 +16,7 @@ run:
 .PHONY: help
 help: 
 > cargo run -- --help
+
+.PHONY: clean
+clean:
+> cargo clean

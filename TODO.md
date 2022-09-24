@@ -35,6 +35,8 @@
 
 [ ] - actually seguir o roteiro do trabalho e ir fazendo as coisa que pede
     [ ] - readme
+        [ ] - revisitar esse BELO EXEMPLAR de make
+            https://github.com/lzacchi/INE5426/blob/master/Makefile
     [ ] - make
             um Makefile para compilação/interpretação/execução do analisador léxico;
                 HAO??
