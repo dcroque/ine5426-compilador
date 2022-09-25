@@ -18,8 +18,8 @@ pub funclist: () = {
 
 // FUNCDEF -> def ident(PARAMLIST){STATELIST }
 pub funcdef: () = {
-    "def" ident oparenth paramlist cparenth ocurly statelist ccurly,
-    "def" ident oparenth cparenth ocurly statelist ccurly
+    def ident oparenth paramlist cparenth ocurly statelist ccurly,
+    def ident oparenth cparenth ocurly statelist ccurly
 };
 
 // PARAMLIST -> ((int | float | string) ident, PARAMLIST | (int | float | string) ident)?
@@ -38,7 +38,7 @@ pub statement: () = {
     ifstat,
     forstat,
     ocurly statelist ccurly,
-    "break" semicolon,
+    break semicolon,
     semicolon,
 };
 // TO-DO: VARDECL -> (int | float | string) ident ([int_constant])*
@@ -67,29 +67,29 @@ pub paramlistcall: () = {
 
 // PRINTSTAT -> print EXPRESSION
 pub printstat: () = {
-    "print" expression,
+    print expression,
 };
 
 // READSTAT -> read LVALUE
 pub readstat: () = {
-    "read" lvalue,
+    read lvalue,
 }
 
 // RETURNSTAT -> return
 pub returnstat: () = {
-    "return",
-    "return" expression,
+    return,
+    return expression,
 };
 
 // IFSTAT -> if (EXPRESSION) STATEMENT (else STATEMENT)?
 pub ifstat: () = {
-    "if" oparenth expression cparenth ocurly statelist ccurly,
-    "if" oparenth expression cparenth ocurly statelist ccurly "else" ocurly statelist ccurly,
+    if oparenth expression cparenth ocurly statelist ccurly,
+    if oparenth expression cparenth ocurly statelist ccurly else ocurly statelist ccurly,
 };
 
 // FORSTAT -> for(ATRIBSTAT; EXPRESSION; ATRIBSTAT) STATEMENT
 pub forstat: () = {
-    "for" oparenth attribstat semicolon expression semicolon attribstat cparenth statement,
+    for oparenth attribstat semicolon expression semicolon attribstat cparenth statement,
 };
 
 // STATELIST -> STATEMENT (STATELIST)?
@@ -100,7 +100,7 @@ pub statelist: () = {
 
 // TO-DO: ALLOCEXPRESSION -> new (int | float | string) ([NUMEXPRESSION])+
 pub allocexpression: () = {
-    "new"    vartype,
+    new    vartype,
     allocexpression obrack numexpression cbrack,
 };
 
@@ -128,11 +128,12 @@ pub unaryexpr: () = {
     addop factor
 };
 
-// FACTOR -> (int_constant | float_constant | string_constant | LVALUE |(NUMEXPRESSION))
+// FACTOR -> (int_constant | float_constant | string_constant | null | LVALUE |(NUMEXPRESSION))
 pub factor: () = {
     int_constant,
     float_constant,
     string_constant,
+    null,
     lvalue,
     oparenth numexpression cparenth,
 };
@@ -168,22 +169,23 @@ pub comma: () = {
 };
 
 pub addop: () = {
-    "+",
-    "-",
+    add,
+    sub,
 };
 
 pub mulop: () = {
-    "*",
-    "/",
+    mul,
+    div,
+    mod,
 };
 
 pub relop: () = {
-    "==",
-    "<>",
-    "<",
-    ">",
-    "<=",
-    ">=",
+    equal,
+    different,
+    lessthan,
+    greaterthan,
+    lessthan,
+    lessequal,
 };
 
 pub vartype: () = {
@@ -192,10 +194,85 @@ pub vartype: () = {
     "float",
 }
 
+pub add: () {
+    "+",
+}
+pub sub: () {
+    "-",
+}
+pub equal: () {
+    "==",
+}
+pub lessthan: () {
+    "<",
+}
+pub greaterthan: () {
+    ">",
+}
+pub lessequal: () {
+    "<=",
+}
+pub graterequal: () {
+    ">=",
+}
+pub different: () {
+    "<>",
+}
+pub mult: () {
+    "*",
+}
+pub div: () {
+    "/",
+}
+pub mod: () {
+    "%",
+}
+pub def: () {
+    "def",
+}
+
+pub def: () {
+    "def",
+} 
+pub break: () {
+    "break",
+} 
+pub read: () {
+    "read",
+} 
+pub return: () {
+    "return",
+} 
+pub if: () {
+    "if",
+} 
+pub else: () {
+    "else",
+} 
+pub for: () {
+    "for",
+} 
+pub new: () {
+    "new",
+} 
+pub print: () {
+    "print",
+}
+pub null: () {
+    "null",
+} 
+pub int: () {
+    "int",
+} 
+pub float: () {
+    "float",
+}
+pub string: () {
+    "string",
+}
 pub attrib: () = {
     "=",
 }
-
 pub oparenth: () = {
     "(",
 } 
