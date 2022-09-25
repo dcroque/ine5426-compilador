@@ -31,7 +31,7 @@ pub funcdef: Vec<TokenType> = {
     <i0:def_word> <i1:ident> <i2:oparenth> <i3:paramlist> <i4:cparenth> <i5:ocurly> <i6:statelist> <i7:ccurly> => {
         vec![i0]
         .into_iter()
-        .chain(vec[i1].into_iter())
+        .chain(vec![i1].into_iter())
         .chain(vec![i2].into_iter())
         .chain(i3.into_iter())
         .chain(vec![i4].into_iter())
@@ -43,7 +43,7 @@ pub funcdef: Vec<TokenType> = {
     <i0:def_word> <i1:ident> <i2:oparenth> <i3:cparenth> <i4:ocurly> <i5:statelist> <i6:ccurly> => {
         vec![i0]
         .into_iter()
-        .chain(vec[i1].into_iter())
+        .chain(vec![i1].into_iter())
         .chain(vec![i2].into_iter())
         .chain(vec![i3].into_iter())
         .chain(vec![i4].into_iter())
@@ -59,11 +59,9 @@ pub paramlist: Vec<TokenType> = {
         vec![i0]
         .into_iter()
         .chain(vec![i1].into_iter())
-        .chain(vec![i2].into_iter())
-        .chain(i3.into_iter())
         .collect::<Vec<TokenType>>()
     },
-    <i0:vartype> <i1:ident> => vec![i0].into_iter().chain(vec![i1].into_iter()),
+    <i0:vartype> <i1:ident> => vec![i0].into_iter().chain(vec![i1].into_iter()).collect::<Vec<TokenType>>(),
 };
 
 // STATEMENT -> (VARDECL; | ATRIBSTAT; |  PRINTSTAT; | READSTAT; | RETURNSTAT; | IFSTAT | FORSTAT | {STATELIST } | break; |;)
@@ -76,7 +74,7 @@ pub statement: Vec<TokenType> = {
     <i:ifstat> => i,
     <i:forstat> => i,
     <i0:ocurly> <i1:statelist> <i2:ccurly> => vec![i0].into_iter().chain(i1.into_iter()).chain(vec![i2].into_iter()).collect::<Vec<TokenType>>(),
-    <i0:break_word> <i1:semicolon> => i0.into_iter().chain(vec![i1].into_iter()).collect::<Vec<TokenType>>(),
+    <i0:break_word> <i1:semicolon> => vec![i0].into_iter().chain(vec![i1].into_iter()).collect::<Vec<TokenType>>(),
     <i:semicolon> => vec![i],
 };
 // TO-DO: VARDECL -> (int | float | string) ident ([int_constant])*
@@ -101,12 +99,12 @@ pub attribstat: Vec<TokenType> = {
 
 // FUNCCALL -> ident(PARAMLISTCALL)
 pub funccall: Vec<TokenType> = {
-    <i0:ident> <i1:oparenth> <i2:paramlistcall> <i3:cparenth> => vec![i0].into_iter().chain(vec![i1].into_iter).chain(i2.into_iter()).chain(vec![i3].into_iter).collect::<Vec<TokenType>>(),
+    <i0:ident> <i1:oparenth> <i2:paramlistcall> <i3:cparenth> => vec![i0].into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).chain(vec![i3].into_iter()).collect::<Vec<TokenType>>(),
 };
 
 // PARAMLISTCALL -> (ident, PARAMLISTCALL | ident)?
 pub paramlistcall: Vec<TokenType> = {
-    <i0:ident> <i1:comma> <i2:paramlistcall> => vec![i0].into_iter().chain(vec![i1].into_iter).chain(i2.into_iter()).collect::<Vec<TokenType>>(),
+    <i0:ident> <i1:comma> <i2:paramlistcall> => vec![i0].into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).collect::<Vec<TokenType>>(),
     <i:ident> => vec![i],
 };
 
