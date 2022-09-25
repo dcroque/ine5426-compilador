@@ -1,4 +1,12 @@
-use crate::language_definition::{TokenType, ReservedWord, Symbol, Expression};
+use crate::language_definition::{
+    TokenType, 
+    ReservedWordType::*, 
+    SymbolType::*,
+    ExpressionType::*,
+    Relop::*,
+    Op::*,
+    MulOp::*,
+};
 
 grammar;
 
@@ -113,9 +121,9 @@ pub expression: () = {
 };
 
 // NUMEXPRESSION -> TERM ((+ |-) TERM)*
-pub numexpression: () = {
-    term,
-    numexpression addop term,
+pub numexpression: Vec<TokenType> = {
+    term => vec![],
+    numexpression addop term => vec![],
 };
 
 // TERM -> UNARYEXPR((* | / | %) UNARYEXPR)*
@@ -131,124 +139,125 @@ pub unaryexpr: () = {
 };
 
 // FACTOR -> (int_constant | float_constant | string_constant | LVALUE |(NUMEXPRESSION))
-pub factor: () = {
-    int_constant,
-    float_constant,
-    string_constant,
-    lvalue,
-    oparenth numexpression cparenth,
+pub factor: Vec<TokenType> = {
+    <i:int_constant> => vec![i],
+    <i:float_constant> => vec![i],
+    <i:string_constant> => vec![i],
+    <i:lvalue> => i,
+    <i0:oparenth> <i1:numexpression> <i2:cparenth> => vec![i0].extend(i1).push(i2),
 };
 
 // TO-DO: LVALUE -> ident([NUMEXPRESSION])*
-pub lvalue: () = {
-    ident,
-    lvalue obrack numexpression cbrack,
+pub lvalue: Vec<TokenType> = {
+    <i:ident> => vec![i],
+    <i0:lvalue> <i1:obrack> <i2:numexpression> <i3:cbrack> => i0.push(i1).append(i2).push(i3),
 };
 
-pub ident: TokenType::Expression = {
-    <value:r"[a-zA-Z][a-zA-Z0-9]*"> => TokenType::Expression::Ident(value.to_string()),
+pub ident: TokenType = {
+    <value:r"[a-zA-Z][a-zA-Z0-9]*"> => TokenType::Expression(Ident(value.to_string())),
 };
 
-pub int_constant: TokenType::Expression = {
-    <value:r"\d+"> => TokenType::Expression::IntConst(value.to_string())
+pub int_constant: TokenType = {
+    <value:r"\d+"> => TokenType::Expression(IntConst(value.to_string())),
 }
 
-pub float_constant: TokenType::Expression = {
-    <value:r"\d+\.\d*"> => TokenType::Expression::FloatConst(value.to_string())
+pub float_constant: TokenType = {
+    <value:r"\d+\.\d*"> => TokenType::Expression(FloatConst(value.to_string())),
 }
 
-pub string_constant: TokenType::Expression = {
-    <value:r#"".*""#> => TokenType::Expression::StrConst(value.to_string()),
+pub string_constant: TokenType = {
+    <value:r#"".*""#> => TokenType::Expression(StrConst(value.to_string())),
 }
 
-pub semicolon: Symbol = {
-    ";" => Symbol::Semicolon,
+pub semicolon: TokenType = {
+    ";" => TokenType::Symbol(Semicolon),
 };
 
-pub comma: Symbol = {
-    "," => Symbol::Comma,
+pub comma: TokenType = {
+    "," => TokenType::Symbol(Comma),
 };
 
-pub addop: TokenType::Expression = {
-    "+" => TokenType::Expression::Op("+".to_string()),
-    "-" => TokenType::Expression::Op("-".to_string()),
+pub addop: TokenType = {
+    "+" => TokenType::Expression(Op(Add)),
+    "-" => TokenType::Expression(Op(Sub)),
 };
 
-pub mulop: TokenType::Expression = {
-    "*" => TokenType::Expression::Op("*".to_string()),
-    "/" => TokenType::Expression::Op("/".to_string()),
+pub mulop: TokenType = {
+    "*" => TokenType::Expression(MulOp(Mul)),
+    "/" => TokenType::Expression(MulOp(Div)),
+    "%" => TokenType::Expression(MulOp(Mod)),
 };
 
-pub relop: TokenType::Expression = {
-    "==" => TokenType::Expression::Relop("==".to_string()),
-    "<>" => TokenType::Expression::Relop("<>".to_string()),
-    "<" => TokenType::Expression::Relop("<".to_string()),
-    ">" => TokenType::Expression::Relop(">".to_string()),
-    "<=" => TokenType::Expression::Relop("<=".to_string()),
-    ">=" => TokenType::Expression::Relop(">=".to_string()),
+pub relop: TokenType = {
+    "==" => TokenType::Expression(Relop(Equal)),
+    "<>" => TokenType::Expression(Relop(Diff)),
+    "<" => TokenType::Expression(Relop(Less)),
+    ">" => TokenType::Expression(Relop(Greater)),
+    "<=" => TokenType::Expression(Relop(EqualLess)),
+    ">=" => TokenType::Expression(Relop(EqualGreater)),
 };
 
-pub vartype: ReservedWord = {
-    "int" => ReservedWord::Int,
-    "string" => ReservedWord::String,
-    "float" => ReservedWord::Float,
+pub vartype: TokenType = {
+    "int" => TokenType::ReservedWord(Int),
+    "string" => TokenType::ReservedWord(String),
+    "float" => TokenType::ReservedWord(Float),
 }
 
-pub attrib: Symbol = {
-    "=" => Symbol::Attrib,
+pub attrib: TokenType = {
+    "=" => TokenType::Symbol(Attrib),
 }
 
-pub oparenth: Symbol = {
-    "(" => Symbol::OParenth,
+pub oparenth: TokenType = {
+    "(" => TokenType::Symbol(OParenth),
 } 
-pub cparenth: Symbol = {
-    ")" => Symbol::CParenth,
+pub cparenth: TokenType = {
+    ")" => TokenType::Symbol(CParenth),
 } 
-pub obrack: Symbol = {
-    "[" => Symbol::OBrack,
+pub obrack: TokenType = {
+    "[" => TokenType::Symbol(OBrack),
 } 
-pub cbrack: Symbol = {
-    "]" => Symbol::CBrack,
+pub cbrack: TokenType = {
+    "]" => TokenType::Symbol(CBrack),
 }
-pub ocurly: Symbol = {
-    "{" => Symbol::OCurly,
+pub ocurly: TokenType = {
+    "{" => TokenType::Symbol(OCurly),
 }
-pub ccurly: Symbol = {
-    "}" => Symbol::CCurly,
-}
-
-pub def_word: ReservedWord = {
-    "def" => ReservedWord::Def,
+pub ccurly: TokenType = {
+    "}" => TokenType::Symbol(CCurly),
 }
 
-pub for_word: ReservedWord = {
-    "for" => ReservedWord::For
+pub def_word: TokenType = {
+    "def" => TokenType::ReservedWord(Def),
 }
 
-pub if_word: ReservedWord = {
-    "if" => ReservedWord::If
+pub for_word: TokenType = {
+    "for" => TokenType::ReservedWord(For)
 }
 
-pub else_word: ReservedWord = {
-    "else" => ReservedWord::Else
+pub if_word: TokenType = {
+    "if" => TokenType::ReservedWord(If)
 }
 
-pub return_word: ReservedWord = {
-    "return" => ReservedWord::Return
+pub else_word: TokenType = {
+    "else" => TokenType::ReservedWord(Else)
 }
 
-pub break_word: ReservedWord = {
-    "break" => ReservedWord::Break
+pub return_word: TokenType = {
+    "return" => TokenType::ReservedWord(Return)
 }
 
-pub new_word: ReservedWord = {
-    "new" => ReservedWord::New
+pub break_word: TokenType = {
+    "break" => TokenType::ReservedWord(Break)
 }
 
-pub print_word: ReservedWord = {
-    "print" => ReservedWord::Print
+pub new_word: TokenType = {
+    "new" => TokenType::ReservedWord(New)
 }
 
-pub read_word: ReservedWord = {
-    "read" => ReservedWord::Read
+pub print_word: TokenType = {
+    "print" => TokenType::ReservedWord(Print)
+}
+
+pub read_word: TokenType = {
+    "read" => TokenType::ReservedWord(Read)
 }

@@ -1,5 +1,5 @@
 #[derive(Debug)]
-pub struct Tokens {
+pub struct Token {
     token_type: TokenType,
     value: String,
     position: usize,
@@ -7,13 +7,13 @@ pub struct Tokens {
 
 #[derive(Debug)]
 pub enum TokenType {
-    ReservedWord,
-    Expression,
-    Symbol,
+    ReservedWord(ReservedWordType),
+    Expression(ExpressionType),
+    Symbol(SymbolType),
 }
 
 #[derive(Debug)]
-pub enum ReservedWord {
+pub enum ReservedWordType {
     Def,
     Break,
     Read,
@@ -30,17 +30,41 @@ pub enum ReservedWord {
 }
 
 #[derive(Debug)]
-pub enum Expression {
+pub enum ExpressionType {
     Ident(String),
     IntConst(String),
     FloatConst(String),
     StrConst(String),
-    Relop(String),
-    Op(String),
+    Relop(Relop),
+    Op(Op),
+    MulOp(MulOp),
 }
 
 #[derive(Debug)]
-pub enum Symbol {
+pub enum Relop {
+    Equal,
+    Diff,
+    Less,
+    Greater,
+    EqualLess,
+    EqualGreater,
+}
+
+#[derive(Debug)]
+pub enum Op {
+    Add,
+    Sub,
+}
+
+#[derive(Debug)]
+pub enum MulOp {
+    Mul,
+    Div,
+    Mod,
+}
+
+#[derive(Debug)]
+pub enum SymbolType {
     OBrack,
     CBrack,
     OParenth,
