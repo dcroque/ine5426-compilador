@@ -1,20 +1,28 @@
-def mtxUNDmul(float A, float B, int n1, int m1, int n2, int m2) {
+def print_authors() {
+    print "Autores deste arquivo e membros do grupo RUST TASKFORCE !!!";
+    print "Ana Vieira de Souza (17100535)";
+    print "Gabriel Simonetto (18103862)";
+    print "Matheus D C Roque (19100538)";
+    print "Paloma Cione (17100530)";
+}
+
+def mtx_mul(float A, float B, int n1, int m1, int n2, int m2) {
     if (m1 <> n2) {
-        print "Número de colunas da primeira matriz deve ser igual ao número de linhas da segunda matriz";
+        print "Número de colunas da primeira matriz deve ser igual ao número de linhas da seg_a matriz";
         return;
     }
 
     R = new float[n1][m2];
     for(i=0; i<n2; i=i+1) {
         for(j=0; j<m1; j=j+1) {
-            R[i][j] = UNDmtxUNDmulUNDelement(A, B, n2, m1, i, j);
+            R[i][j] = _mtx_mul_element(A, B, n2, m1, i, j);
         }
     }
 
     return R;
 }
 
-def UNDmtxUNDmulUNDelement(float A, float B, int n, int m, int a, int b) {
+def _mtx_mul_element(float A, float B, int n, int m, int a, int b) {
     float S;
     S = 0;
     for(i=0; i<n; i=i+1) {
@@ -26,7 +34,7 @@ def UNDmtxUNDmulUNDelement(float A, float B, int n, int m, int a, int b) {
     return S;
 }
 
-def mtxUNDadd(float A, float B, int n, int m) {
+def mtx_add(float A, float B, int n, int m) {
     R = new float[n][m];
     for(i=0; i<n; i=i+1) {
         for(j=0; j<m; j=j+1) {
@@ -37,7 +45,7 @@ def mtxUNDadd(float A, float B, int n, int m) {
     return R;
 }
 
-def mtxUNDsub(float A, float B, int n, int m) {
+def mtx_sub(float A, float B, int n, int m) {
     R = new float[n][m];
     for(i=0; i<n; i=i+1) {
         for(j=0; j<m; j=j+1) {
@@ -46,4 +54,58 @@ def mtxUNDsub(float A, float B, int n, int m) {
     }
 
     return R;
+}
+
+def main() {
+    print_authors();
+
+    int a;
+    int b;
+    int n;
+    int m;
+    int n1;
+    int m1;
+    int n2;
+    int m2;
+    float A;
+    float B;
+
+    a = 1;
+    b = 2;
+    n = 3;
+    m = 4;
+    n1 = 5;
+    m1 = 6;
+    n2 = 7;
+    m2 = 8;
+    A = 2.5;
+    B = 30.7;
+
+    res_1 = new float[2][3];
+    res_2 = new float[2][3];
+    res_3 = new float[2][3];
+    res_4 = new float[2][3];
+
+    res_1 = mtx_mul(A, B, n1, m1, n2, m2);
+    res_2 = _mtx_mul_element(A, B, n, m, a, b);
+    res_3 = mtx_add(A, B, n, m);
+    res_4 = mtx_sub(A, B, n, m);
+
+    print "Imprimindo variaveis";
+    print a;
+    print b;
+    print n;
+    print m;
+    print n1;
+    print m1;
+    print n2;
+    print m2;
+    print A;
+    print B;
+
+    print "Imprimindo Resultados";
+    print res_1;
+    print res_2;
+    print res_3;
+    print res_4;
 }
