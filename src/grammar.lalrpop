@@ -1,216 +1,344 @@
+use crate::language_definition::{
+    TokenType, 
+    ReservedWordType::*, 
+    SymbolType::*,
+    ExpressionType::*,
+    Relop::*,
+    Op::*,
+    MulOp::*,
+};
+
 grammar;
 
-pub file: () = {
-    program,
+pub file: Vec<TokenType> = {
+    <i:program> => i,
 };
 
 // PROGRAM -> (STATEMENT | FUNCLIST)?
-pub program: () = {
-    statement,
-    funclist,
+pub program: Vec<TokenType> = {
+    <i:statement> => i,
+    <i:funclist> => i,
 };
 
 // FUNCLIST -> FUNCDEFFUNCLIST | FUNCDEF
-pub funclist: () = {
-    funcdef funclist,
-    funcdef,
+pub funclist: Vec<TokenType> = {
+    <i0:funcdef> <i1:funclist> => i0.into_iter().chain(i1.into_iter()).collect::<Vec<TokenType>>(),
+    <i:funcdef> => i,
 };
 
 // FUNCDEF -> def ident(PARAMLIST){STATELIST }
-pub funcdef: () = {
-    "def" ident oparenth paramlist cparenth ocurly statelist ccurly,
-    "def" ident oparenth cparenth ocurly statelist ccurly
+pub funcdef: Vec<TokenType> = {
+    <i0:def_word> <i1:ident> <i2:oparenth> <i3:paramlist> <i4:cparenth> <i5:ocurly> <i6:statelist> <i7:ccurly> => {
+        vec![i0]
+        .into_iter()
+        .chain(vec![i1].into_iter())
+        .chain(vec![i2].into_iter())
+        .chain(i3.into_iter())
+        .chain(vec![i4].into_iter())
+        .chain(vec![i5].into_iter())
+        .chain(i6.into_iter())
+        .chain(vec![i7].into_iter())
+        .collect::<Vec<TokenType>>()
+    },
+    <i0:def_word> <i1:ident> <i2:oparenth> <i3:cparenth> <i4:ocurly> <i5:statelist> <i6:ccurly> => {
+        vec![i0]
+        .into_iter()
+        .chain(vec![i1].into_iter())
+        .chain(vec![i2].into_iter())
+        .chain(vec![i3].into_iter())
+        .chain(vec![i4].into_iter())
+        .chain(i5.into_iter())
+        .chain(vec![i6].into_iter())
+        .collect::<Vec<TokenType>>()
+    },
 };
 
 // PARAMLIST -> ((int | float | string) ident, PARAMLIST | (int | float | string) ident)?
-pub paramlist: () = {
-    vartype ident comma paramlist,
-    vartype ident,
+pub paramlist: Vec<TokenType> = {
+    <i0:vartype> <i1:ident> comma paramlist => {
+        vec![i0]
+        .into_iter()
+        .chain(vec![i1].into_iter())
+        .collect::<Vec<TokenType>>()
+    },
+    <i0:vartype> <i1:ident> => vec![i0].into_iter().chain(vec![i1].into_iter()).collect::<Vec<TokenType>>(),
 };
 
 // STATEMENT -> (VARDECL; | ATRIBSTAT; |  PRINTSTAT; | READSTAT; | RETURNSTAT; | IFSTAT | FORSTAT | {STATELIST } | break; |;)
-pub statement: () = {
-    vardecl semicolon,
-    attribstat semicolon,
-    printstat semicolon,
-    readstat semicolon,
-    returnstat semicolon,
-    ifstat,
-    forstat,
-    ocurly statelist ccurly,
-    "break" semicolon,
-    semicolon,
+pub statement: Vec<TokenType> = {
+    <i0:vardecl> <i1:semicolon> => i0.into_iter().chain(vec![i1].into_iter()).collect::<Vec<TokenType>>(),
+    <i0:attribstat> <i1:semicolon> => i0.into_iter().chain(vec![i1].into_iter()).collect::<Vec<TokenType>>(),
+    <i0:printstat> <i1:semicolon> => i0.into_iter().chain(vec![i1].into_iter()).collect::<Vec<TokenType>>(),
+    <i0:readstat> <i1:semicolon> => i0.into_iter().chain(vec![i1].into_iter()).collect::<Vec<TokenType>>(),
+    <i0:returnstat> <i1:semicolon> => i0.into_iter().chain(vec![i1].into_iter()).collect::<Vec<TokenType>>(),
+    <i:ifstat> => i,
+    <i:forstat> => i,
+    <i0:ocurly> <i1:statelist> <i2:ccurly> => vec![i0].into_iter().chain(i1.into_iter()).chain(vec![i2].into_iter()).collect::<Vec<TokenType>>(),
+    <i0:break_word> <i1:semicolon> => vec![i0].into_iter().chain(vec![i1].into_iter()).collect::<Vec<TokenType>>(),
+    <i:semicolon> => vec![i],
 };
 // TO-DO: VARDECL -> (int | float | string) ident ([int_constant])*
-pub vardecl: () = {
-    vartype ident,
-    vardecl obrack int_constant cbrack,
+pub vardecl: Vec<TokenType> = {
+    <i0:vartype> <i1:ident> => vec![i0].into_iter().chain(vec![i1].into_iter()).collect::<Vec<TokenType>>(),
+    <i0:vardecl> <i1:obrack> <i2:int_constant> <i3:cbrack> => {
+        i0
+        .into_iter()
+        .chain(vec![i1].into_iter())
+        .chain(vec![i2].into_iter())
+        .chain(vec![i3].into_iter())
+        .collect::<Vec<TokenType>>()
+    },
 };
 
 // ATRIBSTAT -> LVALUE = (EXPRESSION | ALLOCEXPRESSION | FUNCCALL)
-pub attribstat: () = {
-    lvalue attrib expression,
-    lvalue attrib allocexpression,
-    lvalue attrib funccall,
+pub attribstat: Vec<TokenType> = {
+    <i0:lvalue> <i1:attrib> <i2:expression> => i0.into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).collect::<Vec<TokenType>>(),
+    <i0:lvalue> <i1:attrib> <i2:allocexpression> => i0.into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).collect::<Vec<TokenType>>(),
+    <i0:lvalue> <i1:attrib> <i2:funccall> => i0.into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).collect::<Vec<TokenType>>(),
 };
 
 // FUNCCALL -> ident(PARAMLISTCALL)
-pub funccall: () = {
-    ident oparenth paramlistcall cparenth,
+pub funccall: Vec<TokenType> = {
+    <i0:ident> <i1:oparenth> <i2:paramlistcall> <i3:cparenth> => vec![i0].into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).chain(vec![i3].into_iter()).collect::<Vec<TokenType>>(),
 };
 
 // PARAMLISTCALL -> (ident, PARAMLISTCALL | ident)?
-pub paramlistcall: () = {
-    ident comma paramlistcall,
-    ident,
+pub paramlistcall: Vec<TokenType> = {
+    <i0:ident> <i1:comma> <i2:paramlistcall> => vec![i0].into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).collect::<Vec<TokenType>>(),
+    <i:ident> => vec![i],
 };
 
 // PRINTSTAT -> print EXPRESSION
-pub printstat: () = {
-    "print" expression,
+pub printstat: Vec<TokenType> = {
+    <i0:print_word> <i1:expression> => vec![i0].into_iter().chain(i1.into_iter()).collect::<Vec<TokenType>>(),
 };
 
 // READSTAT -> read LVALUE
-pub readstat: () = {
-    "read" lvalue,
+pub readstat: Vec<TokenType> = {
+    <i0:read_word> <i1:lvalue> => vec![i0].into_iter().chain(i1.into_iter()).collect::<Vec<TokenType>>(),
 }
 
 // RETURNSTAT -> return
-pub returnstat: () = {
-    "return",
-    "return" expression,
+pub returnstat: Vec<TokenType> = {
+    <i:return_word> => vec![i],
+    <i0:return_word> <i1:expression> => vec![i0].into_iter().chain(i1.into_iter()).collect::<Vec<TokenType>>(),
 };
 
 // IFSTAT -> if (EXPRESSION) STATEMENT (else STATEMENT)?
-pub ifstat: () = {
-    "if" oparenth expression cparenth ocurly statelist ccurly,
-    "if" oparenth expression cparenth ocurly statelist ccurly "else" ocurly statelist ccurly,
+pub ifstat: Vec<TokenType> = {
+    <i0:if_word> <i1:oparenth> <i2:expression> <i3:cparenth> <i4:ocurly> <i5:statelist> <i6:ccurly> => {
+        vec![i0]
+        .into_iter()
+        .chain(vec![i1].into_iter())
+        .chain(i2.into_iter())
+        .chain(vec![i3].into_iter())
+        .chain(vec![i4].into_iter())
+        .chain(i5.into_iter())
+        .chain(vec![i6].into_iter())
+        .collect::<Vec<TokenType>>()
+    },
+    <i0:if_word> <i1:oparenth> <i2:expression> <i3:cparenth> <i4:ocurly> <i5:statelist> <i6:ccurly> <i7:else_word> <i8:ocurly> <i9:statelist> <i10:ccurly> => {
+        vec![i0]
+        .into_iter()
+        .chain(vec![i1].into_iter())
+        .chain(i2.into_iter())
+        .chain(vec![i3].into_iter())
+        .chain(vec![i4].into_iter())
+        .chain(i5.into_iter())
+        .chain(vec![i6].into_iter())
+        .chain(vec![i7].into_iter())
+        .chain(vec![i8].into_iter())
+        .chain(i9.into_iter())
+        .chain(vec![i10].into_iter())
+        .collect::<Vec<TokenType>>()
+    },
 };
 
 // FORSTAT -> for(ATRIBSTAT; EXPRESSION; ATRIBSTAT) STATEMENT
-pub forstat: () = {
-    "for" oparenth attribstat semicolon expression semicolon attribstat cparenth statement,
+pub forstat: Vec<TokenType> = {
+    <i0:for_word> <i1:oparenth> <i2:attribstat> <i3:semicolon> <i4:expression> <i5:semicolon> <i6:attribstat> <i7:cparenth> <i8:statement> => {
+        vec![i0]
+        .into_iter()
+        .chain(vec![i1].into_iter())
+        .chain(i2.into_iter())
+        .chain(vec![i3].into_iter())
+        .chain(i4.into_iter())
+        .chain(vec![i5].into_iter())
+        .chain(i6.into_iter())
+        .chain(vec![i7].into_iter())
+        .chain(i8.into_iter())
+        .collect::<Vec<TokenType>>()
+    },
 };
 
 // STATELIST -> STATEMENT (STATELIST)?
-pub statelist: () = {
-    statement,
-    statement statelist,
+pub statelist: Vec<TokenType> = {
+    <i:statement> => i,
+    <i0:statement> <i1:statelist> => {
+        i0
+        .into_iter()
+        .chain(i1.into_iter())
+        .collect::<Vec<TokenType>>()
+    },
 };
 
 // TO-DO: ALLOCEXPRESSION -> new (int | float | string) ([NUMEXPRESSION])+
-pub allocexpression: () = {
-    "new"    vartype,
-    allocexpression obrack numexpression cbrack,
+pub allocexpression: Vec<TokenType> = {
+    <i0:new_word> <i1:vartype> => vec![i0].into_iter().chain(vec![i1].into_iter()).collect::<Vec<TokenType>>(),
+    <i0:allocexpression> <i1:obrack> <i2:numexpression> <i3:cbrack> => {
+        i0
+        .into_iter()
+        .chain(vec![i1].into_iter())
+        .chain(i2.into_iter())
+        .chain(vec![i3].into_iter())
+        .collect::<Vec<TokenType>>()
+    },
 };
 
 // EXPRESSION -> NUMEXPRESSION ((< | > | <= | >= | == | ! =) NUMEXPRESSION)?
-pub expression: () = {
-    numexpression,
-    expression relop numexpression,
+pub expression: Vec<TokenType> = {
+    <i:numexpression> => i,
+    <i0:expression> <i1:relop> <i2:numexpression> => i0.into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).collect::<Vec<TokenType>>(),
 };
 
 // NUMEXPRESSION -> TERM ((+ |-) TERM)*
-pub numexpression: () = {
-    term,
-    numexpression addop term,
+pub numexpression: Vec<TokenType> = {
+    <i:term> => i,
+    <i0:numexpression> <i1:addop> <i2:term> => i0.into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).collect::<Vec<TokenType>>(),
 };
 
 // TERM -> UNARYEXPR((* | / | %) UNARYEXPR)*
-pub term: () = {
-    unaryexpr,
-    term mulop unaryexpr,
+pub term: Vec<TokenType> = {
+    <i:unaryexpr> => i,
+    <i0:term> <i1:mulop> <i2:unaryexpr> => i0.into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).collect::<Vec<TokenType>>(),
 };
 
 // UNARYEXPR -> ((+ | -))? FACTOR
-pub unaryexpr: () = {
-    factor,
-    addop factor
+pub unaryexpr: Vec<TokenType> = {
+    <i:factor> => i,
+    <i0:addop> <i1:factor> => vec![i0].into_iter().chain(i1.into_iter()).collect::<Vec<TokenType>>(),
 };
 
 // FACTOR -> (int_constant | float_constant | string_constant | LVALUE |(NUMEXPRESSION))
-pub factor: () = {
-    int_constant,
-    float_constant,
-    string_constant,
-    lvalue,
-    oparenth numexpression cparenth,
+pub factor: Vec<TokenType> = {
+    <i:int_constant> => vec![i],
+    <i:float_constant> => vec![i],
+    <i:string_constant> => vec![i],
+    <i:lvalue> => i,
+    <i0:oparenth> <i1:numexpression> <i2:cparenth> => vec![i0].into_iter().chain(i1.into_iter()).chain(vec![i2].into_iter()).collect::<Vec<TokenType>>(),
 };
 
 // TO-DO: LVALUE -> ident([NUMEXPRESSION])*
-pub lvalue: () = {
-    ident,
-    lvalue obrack numexpression cbrack,
+pub lvalue: Vec<TokenType> = {
+    <i:ident> => vec![i],
+    <i0:lvalue> <i1:obrack> <i2:numexpression> <i3:cbrack> => i0.into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).chain(vec![i3].into_iter()).collect::<Vec<TokenType>>(),
 };
 
-pub ident: () = {
-    r"[a-zA-Z][a-zA-Z0-9]*",
+pub ident: TokenType = {
+    <value:r"[a-zA-Z][a-zA-Z0-9]*"> => TokenType::Expression(Ident(value.to_string())),
 };
 
-pub int_constant: () = {
-    r"\d+"
+pub int_constant: TokenType = {
+    <value:r"\d+"> => TokenType::Expression(IntConst(value.to_string())),
 }
 
-pub float_constant: () = {
-    r"\d+\.\d*"
+pub float_constant: TokenType = {
+    <value:r"\d+\.\d*"> => TokenType::Expression(FloatConst(value.to_string())),
 }
 
-pub string_constant: () = {
-    r#"".*""#,
+pub string_constant: TokenType = {
+    <value:r#"".*""#> => TokenType::Expression(StrConst(value.to_string())),
 }
 
-pub semicolon: () = {
-    ";",
+pub semicolon: TokenType = {
+    ";" => TokenType::Symbol(Semicolon),
 };
 
-pub comma: () = {
-    ",",
+pub comma: TokenType = {
+    "," => TokenType::Symbol(Comma),
 };
 
-pub addop: () = {
-    "+",
-    "-",
+pub addop: TokenType = {
+    "+" => TokenType::Expression(Op(Add)),
+    "-" => TokenType::Expression(Op(Sub)),
 };
 
-pub mulop: () = {
-    "*",
-    "/",
+pub mulop: TokenType = {
+    "*" => TokenType::Expression(MulOp(Mul)),
+    "/" => TokenType::Expression(MulOp(Div)),
+    "%" => TokenType::Expression(MulOp(Mod)),
 };
 
-pub relop: () = {
-    "==",
-    "<>",
-    "<",
-    ">",
-    "<=",
-    ">=",
+pub relop: TokenType = {
+    "==" => TokenType::Expression(Relop(Equal)),
+    "<>" => TokenType::Expression(Relop(Diff)),
+    "<" => TokenType::Expression(Relop(Less)),
+    ">" => TokenType::Expression(Relop(Greater)),
+    "<=" => TokenType::Expression(Relop(EqualLess)),
+    ">=" => TokenType::Expression(Relop(EqualGreater)),
 };
 
-pub vartype: () = {
-    "int",
-    "string",
-    "float",
+pub vartype: TokenType = {
+    "int" => TokenType::ReservedWord(Int),
+    "string" => TokenType::ReservedWord(String),
+    "float" => TokenType::ReservedWord(Float),
 }
 
-pub attrib: () = {
-    "=",
+pub attrib: TokenType = {
+    "=" => TokenType::Symbol(Attrib),
 }
 
-pub oparenth: () = {
-    "(",
+pub oparenth: TokenType = {
+    "(" => TokenType::Symbol(OParenth),
 } 
-pub cparenth: () = {
-    ")",
+pub cparenth: TokenType = {
+    ")" => TokenType::Symbol(CParenth),
 } 
-pub obrack: () = {
-    "[",
+pub obrack: TokenType = {
+    "[" => TokenType::Symbol(OBrack),
 } 
-pub cbrack: () = {
-    "]",
+pub cbrack: TokenType = {
+    "]" => TokenType::Symbol(CBrack),
 }
-pub ocurly: () = {
-    "{",
+pub ocurly: TokenType = {
+    "{" => TokenType::Symbol(OCurly),
 }
-pub ccurly: () = {
-    "}",
+pub ccurly: TokenType = {
+    "}" => TokenType::Symbol(CCurly),
+}
+
+pub def_word: TokenType = {
+    "def" => TokenType::ReservedWord(Def),
+}
+
+pub for_word: TokenType = {
+    "for" => TokenType::ReservedWord(For)
+}
+
+pub if_word: TokenType = {
+    "if" => TokenType::ReservedWord(If)
+}
+
+pub else_word: TokenType = {
+    "else" => TokenType::ReservedWord(Else)
+}
+
+pub return_word: TokenType = {
+    "return" => TokenType::ReservedWord(Return)
+}
+
+pub break_word: TokenType = {
+    "break" => TokenType::ReservedWord(Break)
+}
+
+pub new_word: TokenType = {
+    "new" => TokenType::ReservedWord(New)
+}
+
+pub print_word: TokenType = {
+    "print" => TokenType::ReservedWord(Print)
+}
+
+pub read_word: TokenType = {
+    "read" => TokenType::ReservedWord(Read)
 }

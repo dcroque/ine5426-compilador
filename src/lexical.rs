@@ -4,18 +4,6 @@ use lalrpop_util::lalrpop_mod;
 
 lalrpop_mod!(pub grammar); // synthesized by LALRPOP
 
-fn parse_constanttype(typestr: &str) {
-    println!("Parsing constant_type: {}", typestr);
-    println!("{:?}", grammar::vartypeParser::new().parse(typestr));
-}
-
-fn parse_identifier(typestr: &str) {
-    println!("Parsing identifier: {}", typestr);
-    println!("{:?}", grammar::identParser::new().parse(typestr));
-}
-
-enum Parsers {}
-
 fn parse_word(word: &str) {
     grammar::vartypeParser::new().parse(word);
 }
@@ -46,6 +34,8 @@ pub fn parse_code<'input>(filename: &str) {
 // }
 
 mod tests {
+    use crate::language_definition;
+
     use super::*;
 
     use lalrpop_util::lalrpop_mod;
@@ -79,4 +69,11 @@ mod tests {
     fn parse_sample_code_3() {
         test_code_file("src/examples/code3.lcc")
     }
+
+    #[test]
+    fn parse_int_constant() {
+        println!("{:?}", grammar::int_constantParser::new().parse("54"));
+    }
+
+    
 }
