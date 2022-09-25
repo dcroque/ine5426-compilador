@@ -175,7 +175,7 @@ pub forstat: Vec<TokenType> = {
 pub statelist: Vec<TokenType> = {
     <i:statement> => i,
     <i0:statement> <i1:statelist> => {
-        vec![i0]
+        i0
         .into_iter()
         .chain(i1.into_iter())
         .collect::<Vec<TokenType>>()
