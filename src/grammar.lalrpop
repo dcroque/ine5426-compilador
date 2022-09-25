@@ -1,3 +1,5 @@
+use crate::language_definition::{TokenType, ReservedWord, Symbol, Expression};
+
 grammar;
 
 pub file: () = {
@@ -18,8 +20,8 @@ pub funclist: () = {
 
 // FUNCDEF -> def ident(PARAMLIST){STATELIST }
 pub funcdef: () = {
-    "def" ident oparenth paramlist cparenth ocurly statelist ccurly,
-    "def" ident oparenth cparenth ocurly statelist ccurly
+    def_word ident oparenth paramlist cparenth ocurly statelist ccurly,
+    def_word ident oparenth cparenth ocurly statelist ccurly
 };
 
 // PARAMLIST -> ((int | float | string) ident, PARAMLIST | (int | float | string) ident)?
@@ -38,7 +40,7 @@ pub statement: () = {
     ifstat,
     forstat,
     ocurly statelist ccurly,
-    "break" semicolon,
+    break_word semicolon,
     semicolon,
 };
 // TO-DO: VARDECL -> (int | float | string) ident ([int_constant])*
@@ -67,29 +69,29 @@ pub paramlistcall: () = {
 
 // PRINTSTAT -> print EXPRESSION
 pub printstat: () = {
-    "print" expression,
+    print_word expression,
 };
 
 // READSTAT -> read LVALUE
 pub readstat: () = {
-    "read" lvalue,
+    read_word lvalue,
 }
 
 // RETURNSTAT -> return
 pub returnstat: () = {
-    "return",
-    "return" expression,
+    return_word,
+    return_word expression,
 };
 
 // IFSTAT -> if (EXPRESSION) STATEMENT (else STATEMENT)?
 pub ifstat: () = {
-    "if" oparenth expression cparenth ocurly statelist ccurly,
-    "if" oparenth expression cparenth ocurly statelist ccurly "else" ocurly statelist ccurly,
+    if_word oparenth expression cparenth ocurly statelist ccurly,
+    if_word oparenth expression cparenth ocurly statelist ccurly else_word ocurly statelist ccurly,
 };
 
 // FORSTAT -> for(ATRIBSTAT; EXPRESSION; ATRIBSTAT) STATEMENT
 pub forstat: () = {
-    "for" oparenth attribstat semicolon expression semicolon attribstat cparenth statement,
+    for_word oparenth attribstat semicolon expression semicolon attribstat cparenth statement,
 };
 
 // STATELIST -> STATEMENT (STATELIST)?
@@ -100,7 +102,7 @@ pub statelist: () = {
 
 // TO-DO: ALLOCEXPRESSION -> new (int | float | string) ([NUMEXPRESSION])+
 pub allocexpression: () = {
-    "new"    vartype,
+    new_word    vartype,
     allocexpression obrack numexpression cbrack,
 };
 
@@ -143,74 +145,110 @@ pub lvalue: () = {
     lvalue obrack numexpression cbrack,
 };
 
-pub ident: () = {
-    r"[a-zA-Z][a-zA-Z0-9]*",
+pub ident: TokenType::Expression = {
+    <value:r"[a-zA-Z][a-zA-Z0-9]*"> => TokenType::Expression::Ident(value.to_string()),
 };
 
-pub int_constant: () = {
-    r"\d+"
+pub int_constant: TokenType::Expression = {
+    <value:r"\d+"> => TokenType::Expression::IntConst(value.to_string())
 }
 
-pub float_constant: () = {
-    r"\d+\.\d*"
+pub float_constant: TokenType::Expression = {
+    <value:r"\d+\.\d*"> => TokenType::Expression::FloatConst(value.to_string())
 }
 
-pub string_constant: () = {
-    r#"".*""#,
+pub string_constant: TokenType::Expression = {
+    <value:r#"".*""#> => TokenType::Expression::StrConst(value.to_string()),
 }
 
-pub semicolon: () = {
-    ";",
+pub semicolon: Symbol = {
+    ";" => Symbol::Semicolon,
 };
 
-pub comma: () = {
-    ",",
+pub comma: Symbol = {
+    "," => Symbol::Comma,
 };
 
-pub addop: () = {
-    "+",
-    "-",
+pub addop: TokenType::Expression = {
+    "+" => TokenType::Expression::Op("+".to_string()),
+    "-" => TokenType::Expression::Op("-".to_string()),
 };
 
-pub mulop: () = {
-    "*",
-    "/",
+pub mulop: TokenType::Expression = {
+    "*" => TokenType::Expression::Op("*".to_string()),
+    "/" => TokenType::Expression::Op("/".to_string()),
 };
 
-pub relop: () = {
-    "==",
-    "<>",
-    "<",
-    ">",
-    "<=",
-    ">=",
+pub relop: TokenType::Expression = {
+    "==" => TokenType::Expression::Relop("==".to_string()),
+    "<>" => TokenType::Expression::Relop("<>".to_string()),
+    "<" => TokenType::Expression::Relop("<".to_string()),
+    ">" => TokenType::Expression::Relop(">".to_string()),
+    "<=" => TokenType::Expression::Relop("<=".to_string()),
+    ">=" => TokenType::Expression::Relop(">=".to_string()),
 };
 
-pub vartype: () = {
-    "int",
-    "string",
-    "float",
+pub vartype: ReservedWord = {
+    "int" => ReservedWord::Int,
+    "string" => ReservedWord::String,
+    "float" => ReservedWord::Float,
 }
 
-pub attrib: () = {
-    "=",
+pub attrib: Symbol = {
+    "=" => Symbol::Attrib,
 }
 
-pub oparenth: () = {
-    "(",
+pub oparenth: Symbol = {
+    "(" => Symbol::OParenth,
 } 
-pub cparenth: () = {
-    ")",
+pub cparenth: Symbol = {
+    ")" => Symbol::CParenth,
 } 
-pub obrack: () = {
-    "[",
+pub obrack: Symbol = {
+    "[" => Symbol::OBrack,
 } 
-pub cbrack: () = {
-    "]",
+pub cbrack: Symbol = {
+    "]" => Symbol::CBrack,
 }
-pub ocurly: () = {
-    "{",
+pub ocurly: Symbol = {
+    "{" => Symbol::OCurly,
 }
-pub ccurly: () = {
-    "}",
+pub ccurly: Symbol = {
+    "}" => Symbol::CCurly,
+}
+
+pub def_word: ReservedWord = {
+    "def" => ReservedWord::Def,
+}
+
+pub for_word: ReservedWord = {
+    "for" => ReservedWord::For
+}
+
+pub if_word: ReservedWord = {
+    "if" => ReservedWord::If
+}
+
+pub else_word: ReservedWord = {
+    "else" => ReservedWord::Else
+}
+
+pub return_word: ReservedWord = {
+    "return" => ReservedWord::Return
+}
+
+pub break_word: ReservedWord = {
+    "break" => ReservedWord::Break
+}
+
+pub new_word: ReservedWord = {
+    "new" => ReservedWord::New
+}
+
+pub print_word: ReservedWord = {
+    "print" => ReservedWord::Print
+}
+
+pub read_word: ReservedWord = {
+    "read" => ReservedWord::Read
 }
