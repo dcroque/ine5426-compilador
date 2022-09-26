@@ -1,47 +1,68 @@
 use std::fs;
 
 use lalrpop_util::lalrpop_mod;
+use crate::language_definition::{Token, TokenType};
 
 lalrpop_mod!(pub grammar); // synthesized by LALRPOP
 
-fn parse_word(word: &str) {
-    grammar::vartypeParser::new().parse(word);
+pub struct SymbolTable {
+    tokens: Vec<Token>
 }
 
-pub fn parse_code<'input>(filename: &str) {
+pub fn parse_into_symbol_table(filename: &str) -> SymbolTable {
     let contents = fs::read_to_string(filename).unwrap();
-    let bla = grammar::fileParser::new().parse(&contents);
-    println!("{:?}", grammar::fileParser::new().parse(&contents));
+    let tokentype_vec = parse_code(filename);
+    let mut cur_pos:usize = 0;
+    let mut result_vec: Vec<Token> = vec![];
+
+    //TODO: Refatorar de forma funcional
+    for element in tokentype_vec {
+        let new_contents = contents[cur_pos..].to_string();
+        let token_value = element.get_value();
+        let token_pos = new_contents.find(&token_value).unwrap()+cur_pos;
+        let token_size = token_value.len();
+        result_vec.push(Token {
+            token_type: element.clone(),
+            value: token_value,
+            position: token_pos,
+            size: token_size,
+        });
+
+        cur_pos = token_pos+token_size;
+    }
+    SymbolTable{tokens: result_vec}
 }
 
-// // Desisti dessa porcaria, por agora
-// fn parse_code<'input>(
-//     filename: &str,
-// ) -> Result<(), lalrpop_util::ParseError<usize, lalrpop_util::lexer::Token<'input>, &'static str>> {
-//     let contents = fs::read_to_string(filename).unwrap();
-//     let bla = grammar::fileParser::new()
-//         .parse(&contents)
-//         .map_err(|e| e.map_token(|tt| tt.clone()));
+pub fn print_symbol_table(st: SymbolTable) {
+    println!("{0: <10}{1: <10}{2: <70}{3}",
+        "POSTION",
+        "SIZE",
+        "VALUE",
+        "TOKEN TYPE"
+    );
+    for element in st.tokens {
+        println!("{0: <10}{1: <10}{2: <70}{3:?}",
+            element.position,
+            element.size,
+            element.value,
+            element.token_type
+        );
+    }
+}
 
-//     bla
-// }
-
-// fn parse_code<'input>(filename: &str) -> Result<(), TrabalhoError> {
-//     let contents = fs::read_to_string(filename).unwrap();
-//     grammar::fileParser::new()
-//         .parse(&contents)
-//         .map_err(|e| ParseErrorContents::from_lalrpop_parse_error_to_error(e))
-// }
+pub fn parse_code<'input>(filename: &str) -> Vec<TokenType> {
+    let contents = fs::read_to_string(filename).unwrap();
+    let result = grammar::fileParser::new().parse(&contents);
+    result.unwrap()
+}
 
 mod tests {
-    use crate::language_definition;
-
     use super::*;
 
     use lalrpop_util::lalrpop_mod;
     lalrpop_mod!(pub grammar); // synthesized by LALRPOP
 
-    fn test_code_file(filename: &str) {
+    fn _test_code_file(filename: &str) {
         let contents = fs::read_to_string(filename).unwrap();
         let result = grammar::fileParser::new().parse(&contents);
         println!("{:?}", result);
@@ -57,17 +78,17 @@ mod tests {
 
     #[test]
     fn parse_sample_code_1() {
-        test_code_file("src/examples/code1.lcc")
+        _test_code_file("src/examples/code1.lcc")
     }
 
     #[test]
     fn parse_sample_code_2() {
-        test_code_file("src/examples/code2.lcc")
+        _test_code_file("src/examples/code2.lcc")
     }
 
     #[test]
     fn parse_sample_code_3() {
-        test_code_file("src/examples/code3.lcc")
+        _test_code_file("src/examples/code3.lcc")
     }
 
     #[test]
@@ -75,5 +96,10 @@ mod tests {
         println!("{:?}", grammar::int_constantParser::new().parse("54"));
     }
 
+    #[test]
+    fn test_symbol_table() {
+        let x = parse_into_symbol_table("src/examples/code3.lcc");
+        print_symbol_table(x);
+    }
     
 }

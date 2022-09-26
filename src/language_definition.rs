@@ -1,18 +1,81 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
-    token_type: TokenType,
-    value: String,
-    position: usize,
+    pub token_type: TokenType,
+    pub value: String,
+    pub position: usize,
+    pub size: usize,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TokenType {
     ReservedWord(ReservedWordType),
     Expression(ExpressionType),
     Symbol(SymbolType),
 }
 
-#[derive(Debug)]
+impl TokenType {
+    
+    pub fn get_value(&self) -> String {
+        use TokenType::*;
+        use ExpressionType::*;
+
+
+        let str_value = match self {
+            ReservedWord(rw) => match rw {
+                ReservedWordType::Def => "def",
+                ReservedWordType::Break => "break",
+                ReservedWordType::Read => "read",
+                ReservedWordType::Return => "return",
+                ReservedWordType::If => "if",
+                ReservedWordType::Else => "else",
+                ReservedWordType::For => "for",
+                ReservedWordType::New => "new",
+                ReservedWordType::Null => "null",
+                ReservedWordType::Print => "print",
+                ReservedWordType::Int => "int",
+                ReservedWordType::Float => "float",
+                ReservedWordType::String => "string",
+            },
+            Expression(ex) => match ex {
+                Ident(value) => value,
+                IntConst(value) => value,
+                FloatConst(value) => value,
+                StrConst(value) => value,
+                Relop(relop) => match relop{
+                    RelopType::Equal => "==",
+                    RelopType::Diff => "<>",
+                    RelopType::Less => "<",
+                    RelopType::Greater => ">",
+                    RelopType::EqualLess => "<=",
+                    RelopType::EqualGreater => ">=",
+                },
+                Op(op) => match op {
+                    OpType::Add => "+",
+                    OpType::Sub => "-",
+                },
+                MulOp(mulop) => match mulop {
+                    MulOpType::Mul => "*",
+                    MulOpType::Div => "/",
+                    MulOpType::Mod => "%",
+                },
+            },
+            Symbol(s) => match s {
+                SymbolType::OBrack => "[",
+                SymbolType::CBrack => "]",
+                SymbolType::OParenth => "(",
+                SymbolType::CParenth => ")",
+                SymbolType::OCurly => "{",
+                SymbolType::CCurly => "}",
+                SymbolType::Attrib => "=",
+                SymbolType::Semicolon => ";",
+                SymbolType::Comma => ",",
+            },
+        };
+        str_value.to_string()
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum ReservedWordType {
     Def,
     Break,
@@ -29,19 +92,19 @@ pub enum ReservedWordType {
     String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ExpressionType {
     Ident(String),
     IntConst(String),
     FloatConst(String),
     StrConst(String),
-    Relop(Relop),
-    Op(Op),
-    MulOp(MulOp),
+    Relop(RelopType),
+    Op(OpType),
+    MulOp(MulOpType),
 }
 
-#[derive(Debug)]
-pub enum Relop {
+#[derive(Debug, Clone)]
+pub enum RelopType {
     Equal,
     Diff,
     Less,
@@ -50,20 +113,20 @@ pub enum Relop {
     EqualGreater,
 }
 
-#[derive(Debug)]
-pub enum Op {
+#[derive(Debug, Clone)]
+pub enum OpType {
     Add,
     Sub,
 }
 
-#[derive(Debug)]
-pub enum MulOp {
+#[derive(Debug, Clone)]
+pub enum MulOpType {
     Mul,
     Div,
     Mod,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum SymbolType {
     OBrack,
     CBrack,

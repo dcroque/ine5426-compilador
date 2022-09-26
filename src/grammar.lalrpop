@@ -3,9 +3,9 @@ use crate::language_definition::{
     ReservedWordType::*, 
     SymbolType::*,
     ExpressionType::*,
-    Relop::*,
-    Op::*,
-    MulOp::*,
+    RelopType::*,
+    OpType::*,
+    MulOpType::*,
 };
 
 grammar;
