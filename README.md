@@ -3,7 +3,7 @@
 ## INSTRUÇÕES
 
 - `make run_all` roda o programa em todos os exemplos de código atualmente no projeto (code1.lcc, code2.lcc e code3.lcc).
-- `make run` espera um argumento de filename, e testa se o conteudo desse arquivo pertence à linguagem (ex: `make run filename=src/examples/code1.lcc`).
+- `make run` espera um argumento de filename, e testa se o conteudo desse arquivo pertence à linguagem (ex: `make run filename=<path/to/file>`). Possui o argumento padrão `filename=src/examples/code1.lcc`.
 - `make test` roda a bateria de testes interna do projeto.
 
 Extra:
