@@ -10,8 +10,18 @@ struct Args {
     filename: String,
 }
 
+fn print_authors() {
+    println!("Autores deste projeto e membros do grupo RUST TASKFORCE !!!");
+    println!("Ana Vieira de Souza (17100535)");
+    println!("Gabriel Simonetto (18103862)");
+    println!("Matheus D C Roque (19100538)");
+    println!("Paloma Cione (17100530)");
+}
+
 fn main() {
     let args = Args::parse();
+
+    print_authors();
 
     println!("Parsing {}", &args.filename);
     let result = parse_into_symbol_table(&args.filename);
