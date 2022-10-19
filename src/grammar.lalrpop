@@ -78,18 +78,30 @@ pub statement: Vec<TokenType> = {
     <i0:break_word> <i1:semicolon> => vec![i0].into_iter().chain(vec![i1].into_iter()).collect::<Vec<TokenType>>(),
     <i:semicolon> => vec![i],
 };
-// TO-DO: VARDECL -> (int | float | string) ident ([int_constant])*
+// VARDECL -> (int | float | string) ident DIMENSIONS
 pub vardecl: Vec<TokenType> = {
-    <i0:vartype> <i1:ident> => vec![i0].into_iter().chain(vec![i1].into_iter()).collect::<Vec<TokenType>>(),
-    <i0:vardecl> <i1:obrack> <i2:int_constant> <i3:cbrack> => {
-        i0
+    <i0:vartype> <i1:ident> <i2:dimensions> => {
+        vec![i0]
+        .into_iter()
+        .chain(vec![i1].into_iter())
+        .chain(i2.into_iter())
+        .collect::<Vec<TokenType>>()
+    }
+};
+
+// DIMENSIONS -> ([int_constant])*
+pub dimensions: Vec<TokenType> = {
+    <i0:obrack> <i1:int_constant> <i2:cbrack> <i3:dimensions> => {
+        vec![i0]
         .into_iter()
         .chain(vec![i1].into_iter())
         .chain(vec![i2].into_iter())
-        .chain(vec![i3].into_iter())
+        .chain(i3.into_iter())
         .collect::<Vec<TokenType>>()
     },
+    <i:epsilon> => vec![i],
 };
+
 
 // ATRIBSTAT -> LVALUE = (EXPRESSION | ALLOCEXPRESSION | FUNCCALL)
 pub attribstat: Vec<TokenType> = {
@@ -307,6 +319,9 @@ pub ocurly: TokenType = {
 }
 pub ccurly: TokenType = {
     "}" => TokenType::Symbol(CCurly),
+}
+pub epsilon: TokenType = {
+    () => TokenType::Symbol(Epsilon)
 }
 
 pub def_word: TokenType = {
