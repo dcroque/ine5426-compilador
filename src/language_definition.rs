@@ -14,11 +14,9 @@ pub enum TokenType {
 }
 
 impl TokenType {
-    
     pub fn get_value(&self) -> String {
-        use TokenType::*;
         use ExpressionType::*;
-
+        use TokenType::*;
 
         let str_value = match self {
             ReservedWord(rw) => match rw {
@@ -41,7 +39,7 @@ impl TokenType {
                 IntConst(value) => value,
                 FloatConst(value) => value,
                 StrConst(value) => value,
-                Relop(relop) => match relop{
+                Relop(relop) => match relop {
                     RelopType::Equal => "==",
                     RelopType::Diff => "<>",
                     RelopType::Less => "<",
@@ -69,6 +67,7 @@ impl TokenType {
                 SymbolType::Attrib => "=",
                 SymbolType::Semicolon => ";",
                 SymbolType::Comma => ",",
+                SymbolType::Epsilon => "",
             },
         };
         str_value.to_string()
@@ -137,4 +136,5 @@ pub enum SymbolType {
     Attrib,
     Semicolon,
     Comma,
+    Epsilon,
 }
