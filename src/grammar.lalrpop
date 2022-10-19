@@ -56,10 +56,12 @@ pub funcdef: Vec<TokenType> = {
 
 // PARAMLIST -> ((int | float | string) ident, PARAMLIST | (int | float | string) ident)?
 pub paramlist: Vec<TokenType> = {
-    <i0:vartype> <i1:ident> comma paramlist => {
+    <i0:vartype> <i1:ident> <i2:comma> <i3:paramlist> => {
         vec![i0]
         .into_iter()
         .chain(vec![i1].into_iter())
+        .chain(vec![i2].into_iter())
+        .chain(i3.into_iter())
         .collect::<Vec<TokenType>>()
     },
     <i0:vartype> <i1:ident> => vec![i0].into_iter().chain(vec![i1].into_iter()).collect::<Vec<TokenType>>(),
@@ -79,6 +81,7 @@ pub statement: Vec<TokenType> = {
     <i0:break_word> <i1:semicolon> => vec![i0].into_iter().chain(vec![i1].into_iter()).collect::<Vec<TokenType>>(),
     <i:semicolon> => vec![i],
 };
+
 // VARDECL -> (int | float | string) ident DIMENSIONS
 pub vardecl: Vec<TokenType> = {
     <i0:vartype> <i1:ident> <i2:dimensions> => {
