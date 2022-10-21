@@ -41,17 +41,6 @@ pub funcdef: Vec<TokenType> = {
         .chain(vec![i7].into_iter())
         .collect::<Vec<TokenType>>()
     },
-    <i0:def_word> <i1:ident> <i2:oparenth> <i3:cparenth> <i4:ocurly> <i5:statelist> <i6:ccurly> => {
-        vec![i0]
-        .into_iter()
-        .chain(vec![i1].into_iter())
-        .chain(vec![i2].into_iter())
-        .chain(vec![i3].into_iter())
-        .chain(vec![i4].into_iter())
-        .chain(i5.into_iter())
-        .chain(vec![i6].into_iter())
-        .collect::<Vec<TokenType>>()
-    },
 };
 
 // PARAMLIST -> ((int | float | string) ident, PARAMLIST | (int | float | string) ident)?
@@ -63,6 +52,8 @@ pub paramlist: Vec<TokenType> = {
         .collect::<Vec<TokenType>>()
     },
     <i0:vartype> <i1:ident> => vec![i0].into_iter().chain(vec![i1].into_iter()).collect::<Vec<TokenType>>(),
+    <i:epsilon> => vec![i],
+
 };
 
 // STATEMENT -> (VARDECL; | ATRIBSTAT; |  PRINTSTAT; | READSTAT; | RETURNSTAT; | IFSTAT | FORSTAT | {STATELIST } | break; |;)
@@ -79,6 +70,7 @@ pub statement: Vec<TokenType> = {
     <i0:break_word> <i1:semicolon> => vec![i0].into_iter().chain(vec![i1].into_iter()).collect::<Vec<TokenType>>(),
     <i:semicolon> => vec![i],
 };
+
 // VARDECL -> (int | float | string) ident DIMENSIONS
 pub vardecl: Vec<TokenType> = {
     <i0:vartype> <i1:ident> <i2:dimensions> => {
@@ -104,11 +96,16 @@ pub dimensions: Vec<TokenType> = {
 };
 
 
-// ATRIBSTAT -> LVALUE = (EXPRESSION | ALLOCEXPRESSION | FUNCCALL)
+// ATRIBSTAT -> LVALUE = RVALUE
 pub attribstat: Vec<TokenType> = {
-    <i0:lvalue> <i1:attrib> <i2:expression> => i0.into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).collect::<Vec<TokenType>>(),
-    <i0:lvalue> <i1:attrib> <i2:allocexpression> => i0.into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).collect::<Vec<TokenType>>(),
-    <i0:lvalue> <i1:attrib> <i2:funccall> => i0.into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).collect::<Vec<TokenType>>(),
+    <i0:lvalue> <i1:attrib> <i2:rvalue> => i0.into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).collect::<Vec<TokenType>>(),
+};
+
+// RVALUE -> (EXPRESSION | ALLOCEXPRESSION | FUNCCALL)
+pub rvalue: Vec<TokenType> = {
+    <i:expression> => i,
+    <i:allocexpression> => i,
+    <i:funccall> => i,
 };
 
 // FUNCCALL -> ident(PARAMLISTCALL)
@@ -140,9 +137,9 @@ pub returnstat: Vec<TokenType> = {
     <i0:return_word> <i1:expression> => vec![i0].into_iter().chain(i1.into_iter()).collect::<Vec<TokenType>>(),
 };
 
-// IFSTAT -> if (EXPRESSION) STATEMENT (else STATEMENT)?
+// IFSTAT -> if (EXPRESSION) STATEMENT ELSE_GEN
 pub ifstat: Vec<TokenType> = {
-    <i0:if_word> <i1:oparenth> <i2:expression> <i3:cparenth> <i4:ocurly> <i5:statelist> <i6:ccurly> => {
+    <i0:if_word> <i1:oparenth> <i2:expression> <i3:cparenth> <i4:ocurly> <i5:statelist> <i6:ccurly> <i7:else_gen> => {
         vec![i0]
         .into_iter()
         .chain(vec![i1].into_iter())
@@ -151,23 +148,21 @@ pub ifstat: Vec<TokenType> = {
         .chain(vec![i4].into_iter())
         .chain(i5.into_iter())
         .chain(vec![i6].into_iter())
+        .chain(i7.into_iter())
         .collect::<Vec<TokenType>>()
     },
-    <i0:if_word> <i1:oparenth> <i2:expression> <i3:cparenth> <i4:ocurly> <i5:statelist> <i6:ccurly> <i7:else_word> <i8:ocurly> <i9:statelist> <i10:ccurly> => {
+};
+
+// ELSE_GEN -> (else {STATELIST})?
+pub else_gen: Vec<TokenType> = {
+    <i0:epsilon> => vec![i0],
+    <i0:else_word> <i1:ocurly> <i2:statelist> <i3:ccurly> => 
         vec![i0]
         .into_iter()
         .chain(vec![i1].into_iter())
         .chain(i2.into_iter())
         .chain(vec![i3].into_iter())
-        .chain(vec![i4].into_iter())
-        .chain(i5.into_iter())
-        .chain(vec![i6].into_iter())
-        .chain(vec![i7].into_iter())
-        .chain(vec![i8].into_iter())
-        .chain(i9.into_iter())
-        .chain(vec![i10].into_iter())
         .collect::<Vec<TokenType>>()
-    },
 };
 
 // FORSTAT -> for(ATRIBSTAT; EXPRESSION; ATRIBSTAT) STATEMENT
@@ -211,10 +206,15 @@ pub allocexpression: Vec<TokenType> = {
     },
 };
 
-// EXPRESSION -> NUMEXPRESSION ((< | > | <= | >= | == | ! =) NUMEXPRESSION)?
+// EXPRESSION -> NUMEXPRESSION RELOP_GEN
 pub expression: Vec<TokenType> = {
-    <i:numexpression> => i,
-    <i0:numexpression> <i1:relop> <i2:numexpression> => i0.into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).collect::<Vec<TokenType>>(),
+    <i0:numexpression> <i1:relop_gen> => i0.into_iter().chain(i1.into_iter()).collect::<Vec<TokenType>>(),
+};
+
+// RELOP_GEN -> ((< | > | <= | >= | == | ! =) NUMEXPRESSION)?
+pub relop_gen: Vec<TokenType> = {
+    <i0:relop> <i1:numexpression> => vec![i0].into_iter().chain(i1.into_iter()).collect::<Vec<TokenType>>(),
+    <i:epsilon> => vec![i],
 };
 
 // NUMEXPRESSION -> TERM NUMEXPRESSION_GENERATOR
@@ -261,10 +261,15 @@ pub term_generator: Vec<TokenType> = {
     },
 };
 
-// UNARYEXPR -> ((+ | -))? FACTOR
+// UNARYEXPR -> ADDOP_GEN FACTOR
 pub unaryexpr: Vec<TokenType> = {
-    <i:factor> => i,
-    <i0:addop> <i1:factor> => vec![i0].into_iter().chain(i1.into_iter()).collect::<Vec<TokenType>>(),
+    <i0:addop_gen> <i1:factor> => i0.into_iter().chain(i1.into_iter()).collect::<Vec<TokenType>>(),
+};
+
+// ADDOP_GEN -> ((+ | -))?
+pub addop_gen: Vec<TokenType> = {
+    <i:epsilon> => vec![i],
+    <i0:addop> => vec![i0],
 };
 
 // FACTOR -> (int_constant | float_constant | string_constant | LVALUE |(NUMEXPRESSION))
