@@ -261,15 +261,11 @@ pub term_generator: Vec<TokenType> = {
     },
 };
 
-// UNARYEXPR -> ADDOP_GEN FACTOR
-pub unaryexpr: Vec<TokenType> = {
-    <i0:addop_gen> <i1:factor> => i0.into_iter().chain(i1.into_iter()).collect::<Vec<TokenType>>(),
-};
 
-// ADDOP_GEN -> ((+ | -))?
-pub addop_gen: Vec<TokenType> = {
-    <i:epsilon> => vec![i],
-    <i0:addop> => vec![i0],
+// UNARYEXPR -> ((+ | -))? FACTOR
+pub unaryexpr: Vec<TokenType> = {
+    <i:factor> => i,
+    <i0:addop> <i1:factor> => vec![i0].into_iter().chain(i1.into_iter()).collect::<Vec<TokenType>>(),
 };
 
 // FACTOR -> (int_constant | float_constant | string_constant | LVALUE |(NUMEXPRESSION))
