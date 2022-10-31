@@ -21,10 +21,14 @@ pub program: Vec<TokenType> = {
     <i:funclist> => i,
 };
 
-// FUNCLIST -> FUNCDEFFUNCLIST | FUNCDEF
+// FUNCLIST -> FUNCDEF FUNCLISTTAIL
 pub funclist: Vec<TokenType> = {
-    <i0:funcdef> <i1:funclist> => i0.into_iter().chain(i1.into_iter()).collect::<Vec<TokenType>>(),
-    <i:funcdef> => i,
+    <i0:funcdef> <i1:funclisttail> => i0.into_iter().chain(i1.into_iter()).collect::<Vec<TokenType>>(),
+};
+
+pub funclisttail: Vec<TokenType> = {
+    <i0:funcdef> <i1:funclisttail> => i0.into_iter().chain(i1.into_iter()).collect::<Vec<TokenType>>(),
+    <i:epsilon> => vec![i],
 };
 
 // FUNCDEF -> def ident(PARAMLIST){STATELIST }
@@ -45,7 +49,26 @@ pub funcdef: Vec<TokenType> = {
 
 // PARAMLIST -> ((int | float | string) ident, PARAMLIST | (int | float | string) ident)?
 pub paramlist: Vec<TokenType> = {
-    <i0:vartype> <i1:ident> <i2:comma> <i3:paramlist> => {
+    <i0:firstparam> <i1:otherparam> => {
+        i0
+        .into_iter()
+        .chain(i1.into_iter())
+        .collect::<Vec<TokenType>>()
+    },
+    <i:epsilon> => vec![i],
+};
+
+pub firstparam: Vec<TokenType> = {
+    <i0:vartype> <i1:ident> => {
+        vec![i0]
+        .into_iter()
+        .chain(vec![i1].into_iter())
+        .collect::<Vec<TokenType>>()
+    },
+};
+
+pub otherparam: Vec<TokenType> = {
+    <i0:comma> <i1:vartype> <i2:ident> <i3:otherparam> => {
         vec![i0]
         .into_iter()
         .chain(vec![i1].into_iter())
@@ -53,9 +76,7 @@ pub paramlist: Vec<TokenType> = {
         .chain(i3.into_iter())
         .collect::<Vec<TokenType>>()
     },
-    <i0:vartype> <i1:ident> => vec![i0].into_iter().chain(vec![i1].into_iter()).collect::<Vec<TokenType>>(),
     <i:epsilon> => vec![i],
-
 };
 
 // STATEMENT -> (VARDECL; | ATRIBSTAT; |  PRINTSTAT; | READSTAT; | RETURNSTAT; | IFSTAT | FORSTAT | {STATELIST } | break; |;)
@@ -117,11 +138,14 @@ pub funccall: Vec<TokenType> = {
         
 // PARAMLISTCALL -> (ident, PARAMLISTCALL | ident)?
 pub paramlistcall: Vec<TokenType> = {
+    <i0:ident> <i1:otherparamlistcall> => vec![i0].into_iter().chain(i1.into_iter()).collect::<Vec<TokenType>>(),
     <i:epsilon> => vec![i],
-    <i0:ident> <i1:comma> <i2:paramlistcall> => vec![i0].into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).collect::<Vec<TokenType>>(),
-    <i:ident> => vec![i],
 };
 
+pub otherparamlistcall: Vec<TokenType> = {
+    <i0:comma> <i1:ident> <i2:otherparamlistcall> => vec![i0].into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).collect::<Vec<TokenType>>(),
+    <i:epsilon> => vec![i],
+};
 
 // PRINTSTAT -> print EXPRESSION
 pub printstat: Vec<TokenType> = {
@@ -135,8 +159,12 @@ pub readstat: Vec<TokenType> = {
 
 // RETURNSTAT -> return
 pub returnstat: Vec<TokenType> = {
-    <i:return_word> => vec![i],
-    <i0:return_word> <i1:expression> => vec![i0].into_iter().chain(i1.into_iter()).collect::<Vec<TokenType>>(),
+    <i0:return_word> <i1:returnexpression> => vec![i0].into_iter().chain(i1.into_iter()).collect::<Vec<TokenType>>(),
+};
+
+pub returnexpression: Vec<TokenType> = {
+    <i:expression> => i,
+    <i:epsilon> => vec![i],
 };
 
 // IFSTAT -> if (EXPRESSION) STATEMENT ELSE_GEN
@@ -186,8 +214,7 @@ pub forstat: Vec<TokenType> = {
 
 // STATELIST -> STATEMENT (STATELIST)?
 pub statelist: Vec<TokenType> = {
-    <i:statement> => i,
-    <i0:statement> <i1:statelist> => {
+    <i0:statement> <i1:statelisttail> => {
         i0
         .into_iter()
         .chain(i1.into_iter())
@@ -195,15 +222,29 @@ pub statelist: Vec<TokenType> = {
     },
 };
 
+pub statelisttail: Vec<TokenType> = {
+    <i:epsilon> => vec![i],
+    <i:statelist> => i,
+};
+
 // TO-DO: ALLOCEXPRESSION -> new (int | float | string) ([NUMEXPRESSION])+
 pub allocexpression: Vec<TokenType> = {
-    <i0:new_word> <i1:vartype> => vec![i0].into_iter().chain(vec![i1].into_iter()).collect::<Vec<TokenType>>(),
-    <i0:allocexpression> <i1:obrack> <i2:numexpression> <i3:cbrack> => {
-        i0
+    <i0:new_word> <i1:vartype> <i2:allocexpressiondimensions> => {
+        vec![i0]
         .into_iter()
         .chain(vec![i1].into_iter())
         .chain(i2.into_iter())
-        .chain(vec![i3].into_iter())
+        .collect::<Vec<TokenType>>()},
+};
+
+pub allocexpressiondimensions: Vec<TokenType> = {
+    <i:epsilon> => vec![i],
+    <i0:obrack> <i1:numexpression> <i2:cbrack> <i3:allocexpressiondimensions> => {
+        vec![i0]
+        .into_iter()
+        .chain(i1.into_iter())
+        .chain(vec![i2].into_iter())
+        .chain(i3.into_iter())
         .collect::<Vec<TokenType>>()
     },
 };
@@ -279,23 +320,9 @@ pub factor: Vec<TokenType> = {
     <i0:oparenth> <i1:numexpression> <i2:cparenth> => vec![i0].into_iter().chain(i1.into_iter()).chain(vec![i2].into_iter()).collect::<Vec<TokenType>>(),
 };
 
-// LVALUE -> ident lvalue_generator
+// LVALUE -> ident allocexpressiondimensions
 pub lvalue: Vec<TokenType> = {
-    <i0:ident> <i1:lvalue_generator> => vec![i0].into_iter().chain(i1.into_iter()).collect::<Vec<TokenType>>(),
-};
-
-// LVALUE_GENERATOR -> ([NUMEXPRESSION])*
-pub lvalue_generator: Vec<TokenType> = {
-    <i:epsilon> => vec![i],
-    <i0:obrack> <i1:numexpression> <i2:cbrack> <i3:lvalue_generator> => {
-        vec![i0]
-        .into_iter()
-        .chain(i1.into_iter())
-        .chain(vec![i2].into_iter())
-        .chain(i3.into_iter())
-        .collect::<Vec<TokenType>>()
-    },
-
+    <i0:ident> <i1:allocexpressiondimensions> => vec![i0].into_iter().chain(i1.into_iter()).collect::<Vec<TokenType>>(),
 };
 
 pub ident: TokenType = {
