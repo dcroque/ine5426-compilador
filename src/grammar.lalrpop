@@ -326,19 +326,19 @@ pub lvalue: Vec<TokenType> = {
 };
 
 pub ident: TokenType = {
-    <value:r"[a-zA-Z][a-zA-Z0-9_]*"> => TokenType::Expression(Ident(value.to_string())),
+    <value:r"[a-zA-Z][a-zA-Z0-9_]*"> => TokenType::Expression(Ident(value.to_string()), 0),
 };
 
 pub int_constant: TokenType = {
-    <value:r"\d+"> => TokenType::Expression(IntConst(value.to_string())),
+    <value:r"\d+"> => TokenType::Expression(IntConst(value.to_string()), 0),
 }
 
 pub float_constant: TokenType = {
-    <value:r"\d+\.\d*"> => TokenType::Expression(FloatConst(value.to_string())),
+    <value:r"\d+\.\d*"> => TokenType::Expression(FloatConst(value.to_string()), 0),
 }
 
 pub string_constant: TokenType = {
-    <value:r#"".*""#> => TokenType::Expression(StrConst(value.to_string())),
+    <value:r#"".*""#> => TokenType::Expression(StrConst(value.to_string()), 0),
 }
 
 pub semicolon: TokenType = {
@@ -350,23 +350,23 @@ pub comma: TokenType = {
 };
 
 pub addop: TokenType = {
-    "+" => TokenType::Expression(Op(Add)),
-    "-" => TokenType::Expression(Op(Sub)),
+    "+" => TokenType::Expression(Op(Add), 0),
+    "-" => TokenType::Expression(Op(Sub), 0),
 };
 
 pub mulop: TokenType = {
-    "*" => TokenType::Expression(MulOp(Mul)),
-    "/" => TokenType::Expression(MulOp(Div)),
-    "%" => TokenType::Expression(MulOp(Mod)),
+    "*" => TokenType::Expression(MulOp(Mul), 0),
+    "/" => TokenType::Expression(MulOp(Div), 0),
+    "%" => TokenType::Expression(MulOp(Mod), 0),
 };
 
 pub relop: TokenType = {
-    "==" => TokenType::Expression(Relop(Equal)),
-    "<>" => TokenType::Expression(Relop(Diff)),
-    "<" => TokenType::Expression(Relop(Less)),
-    ">" => TokenType::Expression(Relop(Greater)),
-    "<=" => TokenType::Expression(Relop(EqualLess)),
-    ">=" => TokenType::Expression(Relop(EqualGreater)),
+    "==" => TokenType::Expression(Relop(Equal), 0),
+    "<>" => TokenType::Expression(Relop(Diff), 0),
+    "<" => TokenType::Expression(Relop(Less), 0),
+    ">" => TokenType::Expression(Relop(Greater), 0),
+    "<=" => TokenType::Expression(Relop(EqualLess), 0),
+    ">=" => TokenType::Expression(Relop(EqualGreater), 0),
 };
 
 pub vartype: TokenType = {
