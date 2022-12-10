@@ -4,12 +4,13 @@ pub struct Token {
     pub value: String,
     pub position: usize,
     pub size: usize,
+    pub annotations: i32,
 }
 
 #[derive(Debug, Clone)]
 pub enum TokenType {
     ReservedWord(ReservedWordType),
-    Expression(ExpressionType),
+    Expression(ExpressionType, i32),
     Symbol(SymbolType),
 }
 
@@ -34,7 +35,7 @@ impl TokenType {
                 ReservedWordType::Float => "float",
                 ReservedWordType::String => "string",
             },
-            Expression(ex) => match ex {
+            Expression(ex, _) => match ex {
                 Ident(value) => value,
                 IntConst(value) => value,
                 FloatConst(value) => value,

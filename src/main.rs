@@ -24,6 +24,9 @@ fn main() {
     print_authors();
 
     println!("Parsing {}", &args.filename);
-    let result = parse_into_symbol_table(&args.filename);
-    print_symbol_table(result);
+    // let result = parse_into_symbol_table(&args.filename);
+    // print_symbol_table(result);
+
+    let result = trabalho::lexical::parse_code(&args.filename);
+    println!("{:?}", result);
 }
