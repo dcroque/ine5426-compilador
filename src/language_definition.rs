@@ -23,7 +23,8 @@ pub struct ASTNode {
     pub token_name: Option<String>,
     pub value: Option<Value>,
     pub var_type: Option<VarType>,
-    pub token_type: TokenType,
+    pub token_type: Option<TokenType>,
+    pub symbol_table: Vec<Symbol>,
 }
 
 pub struct Symbol {
