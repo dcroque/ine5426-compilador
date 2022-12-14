@@ -1,25 +1,25 @@
 use std::fs;
 
-use lalrpop_util::lalrpop_mod;
 use crate::language_definition::{Token, TokenType};
+use lalrpop_util::lalrpop_mod;
 
 lalrpop_mod!(pub grammar); // synthesized by LALRPOP
 
 pub struct SymbolTable {
-    tokens: Vec<Token>
+    tokens: Vec<Token>,
 }
 
 pub fn parse_into_symbol_table(filename: &str) -> SymbolTable {
     let contents = fs::read_to_string(filename).unwrap();
     let tokentype_vec = parse_code(filename);
-    let mut cur_pos:usize = 0;
+    let mut cur_pos: usize = 0;
     let mut result_vec: Vec<Token> = vec![];
 
     //TODO: Refatorar de forma funcional
     for element in tokentype_vec {
         let new_contents = contents[cur_pos..].to_string();
         let token_value = element.get_value();
-        let token_pos = new_contents.find(&token_value).unwrap()+cur_pos;
+        let token_pos = new_contents.find(&token_value).unwrap() + cur_pos;
         let token_size = token_value.len();
         result_vec.push(Token {
             token_type: element.clone(),
@@ -28,24 +28,20 @@ pub fn parse_into_symbol_table(filename: &str) -> SymbolTable {
             size: token_size,
         });
 
-        cur_pos = token_pos+token_size;
+        cur_pos = token_pos + token_size;
     }
-    SymbolTable{tokens: result_vec}
+    SymbolTable { tokens: result_vec }
 }
 
 pub fn print_symbol_table(st: SymbolTable) {
-    println!("{0: <10}{1: <10}{2: <70}{3}",
-        "POSTION",
-        "SIZE",
-        "VALUE",
-        "TOKEN TYPE"
+    println!(
+        "{0: <10}{1: <10}{2: <70}{3}",
+        "POSTION", "SIZE", "VALUE", "TOKEN TYPE"
     );
     for element in st.tokens {
-        println!("{0: <10}{1: <10}{2: <70}{3:?}",
-            element.position,
-            element.size,
-            element.value,
-            element.token_type
+        println!(
+            "{0: <10}{1: <10}{2: <70}{3:?}",
+            element.position, element.size, element.value, element.token_type
         );
     }
 }
@@ -101,5 +97,4 @@ mod tests {
         let x = parse_into_symbol_table("src/examples/code3.lcc");
         print_symbol_table(x);
     }
-    
 }

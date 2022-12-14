@@ -13,6 +13,40 @@ pub enum TokenType {
     Symbol(SymbolType),
 }
 
+pub struct AST {
+    pub root: ASTNode,
+    pub symbol_table: Vec<Symbol>,
+}
+
+pub struct ASTNode {
+    pub child: Vec<ASTNode>,
+    pub token_name: Option<String>,
+    pub value: Option<Value>,
+    pub var_type: Option<VarType>,
+    pub token_type: TokenType,
+}
+
+pub struct Symbol {
+    pub token_name: String,
+    pub value: Value,
+    pub token_type: VarType,
+    pub scope: Option<String>,
+}
+
+pub enum Value {
+    KnownInt(i32),
+    KnownFloat(f32),
+    KnownString(String),
+    Unknown,
+}
+
+pub enum VarType {
+    Int(i32),
+    Float(i32),
+    String(i32),
+    NotDeclared,
+}
+
 impl TokenType {
     pub fn get_value(&self) -> String {
         use ExpressionType::*;
