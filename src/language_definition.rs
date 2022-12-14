@@ -13,11 +13,13 @@ pub enum TokenType {
     Symbol(SymbolType),
 }
 
+#[derive(Debug, Clone)]
 pub struct AST {
     pub root: ASTNode,
     pub symbol_table: Vec<Symbol>,
 }
 
+#[derive(Debug, Clone)]
 pub struct ASTNode {
     pub child: Vec<ASTNode>,
     pub token_name: Option<String>,
@@ -27,13 +29,15 @@ pub struct ASTNode {
     pub symbol_table: Vec<Symbol>,
 }
 
+#[derive(Debug, Clone)]
 pub struct Symbol {
     pub token_name: String,
     pub value: Value,
-    pub token_type: VarType,
+    pub var_type: VarType,
     pub scope: Option<String>,
 }
 
+#[derive(Debug, Clone)]
 pub enum Value {
     KnownInt(i32),
     KnownFloat(f32),
@@ -41,13 +45,14 @@ pub enum Value {
     Unknown,
 }
 
+#[derive(Debug, Clone)]
 pub enum VarType {
     Int(i32),
     Float(i32),
     String(i32),
     NotDeclared,
 }
-
+#[derive(Debug, Clone)]
 impl TokenType {
     pub fn get_value(&self) -> String {
         use ExpressionType::*;

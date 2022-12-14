@@ -1,0 +1,1166 @@
+use crate::language_definition::{
+    TokenType, 
+    ReservedWordType::*, 
+    SymbolType::*,
+    ExpressionType::*,
+    RelopType::*,
+    OpType::*,
+    MulOpType::*,
+};
+
+grammar;
+
+pub file: AST = {
+    <i:program> => {
+        AST {
+            root: ASTNode {
+                child: vec![i],
+                token_name: None,
+                value: None,
+                var_type: None,
+                token_type: None,
+                symbol_table: vec![],
+            },
+            symbol_table: i.symbol_table.clone(),
+        }
+    },
+};
+
+// PROGRAM -> (STATEMENT | FUNCLIST)?
+pub program: ASTNode = {
+    <i:epsilon> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i:statement> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i:funclist> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+};
+
+// FUNCLIST -> FUNCDEF FUNCLISTTAIL
+pub funclist: ASTNode = {
+    <i0:funcdef> <i1:funclisttail> => {
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+};
+
+pub funclisttail: ASTNode = {
+    <i0:funcdef> <i1:funclisttail> => {
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i:epsilon> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+};
+
+// FUNCDEF -> def ident(PARAMLIST){STATELIST }
+pub funcdef: ASTNode = {
+    <i0:def_word> <i1:ident> <i2:oparenth> <i3:paramlist> <i4:cparenth> <i5:ocurly> <i6:statelist> <i7:ccurly> => {
+        ASTNode {
+            child: vec![i0, i1, i2, i3, i4, i5, i6, i7],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+};
+
+// PARAMLIST -> ((int | float | string) ident, PARAMLIST | (int | float | string) ident)?
+pub paramlist: ASTNode = {
+    <i0:firstparam> <i1:otherparam> => {
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i:epsilon> => vec![i],
+};
+
+pub firstparam: ASTNode = {
+    <i0:vartype> <i1:ident> => {
+        vec![i0]
+        .into_iter()
+        .chain(vec![i1].into_iter())
+        .collect::<ASTNode>()
+    },
+};
+
+pub otherparam: ASTNode = {
+    <i0:comma> <i1:vartype> <i2:ident> <i3:otherparam> => {
+        vec![i0]
+        .into_iter()
+        .chain(vec![i1].into_iter())
+        .chain(vec![i2].into_iter())
+        .chain(i3.into_iter())
+        .collect::<ASTNode>()
+    },
+    <i:epsilon> => vec![i],
+};
+
+// STATEMENT -> (VARDECL; | ATRIBSTAT; |  PRINTSTAT; | READSTAT; | RETURNSTAT; | IFSTAT | FORSTAT | {STATELIST } | break; |;)
+pub statement: ASTNode = {
+    <i0:vardecl> <i1:semicolon> => i0.into_iter().chain(vec![i1].into_iter()).collect::<ASTNode>(),
+    <i0:attribstat> <i1:semicolon> => i0.into_iter().chain(vec![i1].into_iter()).collect::<ASTNode>(),
+    <i0:printstat> <i1:semicolon> => i0.into_iter().chain(vec![i1].into_iter()).collect::<ASTNode>(),
+    <i0:readstat> <i1:semicolon> => i0.into_iter().chain(vec![i1].into_iter()).collect::<ASTNode>(),
+    <i0:returnstat> <i1:semicolon> => i0.into_iter().chain(vec![i1].into_iter()).collect::<ASTNode>(),
+    <i0:funccall> <i1:semicolon> => i0.into_iter().chain(vec![i1].into_iter()).collect::<ASTNode>(),
+    <i:ifstat> => i,
+    <i:forstat> => i,
+    <i0:ocurly> <i1:statelist> <i2:ccurly> => vec![i0].into_iter().chain(i1.into_iter()).chain(vec![i2].into_iter()).collect::<ASTNode>(),
+    <i0:break_word> <i1:semicolon> => vec![i0].into_iter().chain(vec![i1].into_iter()).collect::<ASTNode>(),
+    <i:semicolon> => vec![i],
+};
+
+// VARDECL -> (int | float | string) ident DIMENSIONS
+pub vardecl: ASTNode = {
+    <i0:vartype> <i1:ident> <i2:dimensions> => {
+        let dim = match i2.value {
+            Some(Value::KnownInt(x)) => x+1,
+            _ => 1,
+        };
+        let vartype_value = match i0.token_type {
+            Some(TokenType::ReservedWord(Int)) => Some(VarType::Int(dim)),
+            Some(TokenType::ReservedWord(Float)) => Some(VarType::Float(dim)),
+            Some(TokenType::ReservedWord(String)) => Some(VarType::String(dim)),
+        };
+        ASTNode {
+            child: vec![i],
+            token_name: ident.to_string(),
+            value: Some(Value::Unknown),
+            var_type: vartype_value,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    }
+};
+
+// DIMENSIONS -> ([int_constant])*
+pub dimensions: ASTNode = {
+    <i0:obrack> <i1:int_constant> <i2:cbrack> <i3:dimensions> => {
+        let dim = match i3.value {
+            Some(Value::KnownInt(x)) => x+1,
+            _ => 1,
+        }
+        ASTNode {
+            child: vec![i0, i1, i2, i3],
+            token_name: None,
+            value: dim,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i:epsilon> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+};
+
+
+// ATRIBSTAT -> LVALUE = RVALUE
+pub attribstat: ASTNode = {
+    <i0:lvalue> <i1:attrib> <i2:rvalue> => {
+        if i0.var_type != i2.var_type {
+            panic!("Atribuição inválida! Valor do tipo {:?} em variável do tipo {:?}", i0.var_type, i2.var_type);
+        }
+        ASTNode {
+            child: vec![i0, i1, i2],
+            token_name: i0.token_name.clone(),
+            value: i2.value.clone(),
+            var_type: i0.var_type.clone(),
+            token_type: None,
+            symbol_table: vec![Symbol {
+                token_name: i0.token_name.clone(),
+                value: i2.value.clone(),
+                var_type: i0.var_type.clone(),
+                scope: None,
+            }],
+        }
+    },
+};
+
+// RVALUE -> (EXPRESSION | ALLOCEXPRESSION | FUNCCALL)
+pub rvalue: ASTNode = {
+    <i:expression> => {
+        ASTNode {
+            child: vec![i],
+            token_name: i.token_name.clone(),
+            value: i.value.clone(),
+            var_type: i.var_type.clone(),
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i:allocexpression> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: Some(Value::Unknown),
+            var_type: i.var_type.clone(),
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i:funccall> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: Some(Value::Unknown),
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+};
+
+// FUNCCALL -> ident(PARAMLISTCALL)
+pub funccall: ASTNode = {
+    <i0:ident> <i1:oparenth> <i2:paramlistcall> <i3:cparenth> => vec![i0].into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).chain(vec![i3].into_iter()).collect::<ASTNode>(),     
+};      
+        
+// PARAMLISTCALL -> (ident, PARAMLISTCALL | ident)?
+pub paramlistcall: ASTNode = {
+    <i0:ident> <i1:otherparamlistcall> => vec![i0].into_iter().chain(i1.into_iter()).collect::<ASTNode>(),
+    <i:epsilon> => vec![i],
+};
+
+pub otherparamlistcall: ASTNode = {
+    <i0:comma> <i1:ident> <i2:otherparamlistcall> => vec![i0].into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).collect::<ASTNode>(),
+    <i:epsilon> => vec![i],
+};
+
+// PRINTSTAT -> print EXPRESSION
+pub printstat: ASTNode = {
+    <i0:print_word> <i1:expression> => vec![i0].into_iter().chain(i1.into_iter()).collect::<ASTNode>(),
+};
+
+// READSTAT -> read LVALUE
+pub readstat: ASTNode = {
+    <i0:read_word> <i1:lvalue> => vec![i0].into_iter().chain(i1.into_iter()).collect::<ASTNode>(),
+}
+
+// RETURNSTAT -> return
+pub returnstat: ASTNode = {
+    <i0:return_word> <i1:returnexpression> => vec![i0].into_iter().chain(i1.into_iter()).collect::<ASTNode>(),
+};
+
+pub returnexpression: ASTNode = {
+    <i:expression> => i,
+    <i:epsilon> => vec![i],
+};
+
+// IFSTAT -> if (EXPRESSION) STATEMENT ELSE_GEN
+pub ifstat: ASTNode = {
+    <i0:if_word> <i1:oparenth> <i2:expression> <i3:cparenth> <i4:ocurly> <i5:statelist> <i6:ccurly> <i7:else_gen> => {
+        vec![i0]
+        .into_iter()
+        .chain(vec![i1].into_iter())
+        .chain(i2.into_iter())
+        .chain(vec![i3].into_iter())
+        .chain(vec![i4].into_iter())
+        .chain(i5.into_iter())
+        .chain(vec![i6].into_iter())
+        .chain(i7.into_iter())
+        .collect::<ASTNode>()
+    },
+};
+
+// ELSE_GEN -> (else {STATELIST})?
+pub else_gen: ASTNode = {
+    <i0:epsilon> => vec![i0],
+    <i0:else_word> <i1:ocurly> <i2:statelist> <i3:ccurly> => 
+        vec![i0]
+        .into_iter()
+        .chain(vec![i1].into_iter())
+        .chain(i2.into_iter())
+        .chain(vec![i3].into_iter())
+        .collect::<ASTNode>()
+};
+
+// FORSTAT -> for(ATRIBSTAT; EXPRESSION; ATRIBSTAT) STATEMENT
+pub forstat: ASTNode = {
+    <i0:for_word> <i1:oparenth> <i2:attribstat> <i3:semicolon> <i4:expression> <i5:semicolon> <i6:attribstat> <i7:cparenth> <i8:statement> => {
+        vec![i0]
+        .into_iter()
+        .chain(vec![i1].into_iter())
+        .chain(i2.into_iter())
+        .chain(vec![i3].into_iter())
+        .chain(i4.into_iter())
+        .chain(vec![i5].into_iter())
+        .chain(i6.into_iter())
+        .chain(vec![i7].into_iter())
+        .chain(i8.into_iter())
+        .collect::<ASTNode>()
+    },
+};
+
+// STATELIST -> STATEMENT (STATELIST)?
+pub statelist: ASTNode = {
+    <i0:statement> <i1:statelisttail> => {
+        i0
+        .into_iter()
+        .chain(i1.into_iter())
+        .collect::<ASTNode>()
+    },
+};
+
+pub statelisttail: ASTNode = {
+    <i:epsilon> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i:statelist> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+};
+
+// TO-DO: ALLOCEXPRESSION -> new (int | float | string) ([NUMEXPRESSION])+
+pub allocexpression: ASTNode = {
+    <i0:new_word> <i1:vartype> <i2:allocexpressiondimensions> => {
+        let dim = match i2.value {
+            Some(Value::KnownInt(x)) => x+1,
+            _ => 1,
+        }
+        let vartype_value = match i1.token_type {
+            Some(TokenType::ReservedWord(Int)) => Some(VarType::Int(dim)),
+            Some(TokenType::ReservedWord(Float)) => Some(VarType::Float(dim)),
+            Some(TokenType::ReservedWord(String)) => Some(VarType::String(dim)),
+        };
+        ASTNode {
+            child: vec![i0, i1, i2],
+            token_name: None,
+            value: None,
+            var_type: vartype_value,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    }
+};
+
+pub allocexpressiondimensions: ASTNode = {
+    <i:epsilon> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i0:obrack> <i1:numexpression> <i2:cbrack> <i3:allocexpressiondimensions> => {
+        let val = match i3.value {
+            Some(Value::KnownInt(x)) => Some(Value::KnownInt(x+1)),
+            _ => Some(Value::KnownInt(1))
+        }
+        ASTNode {
+            child: vec![i0, i1, i2, i3],
+            token_name: None,
+            value: val,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+};
+
+// EXPRESSION -> NUMEXPRESSION RELOP_GEN
+pub expression: ASTNode = {
+    <i0:numexpression> <i1:relop_gen> => {
+        match i1.child.len() {
+            1 => ASTNode {
+                child: vec![i0, i1],
+                token_name: None,
+                value: None,
+                var_type: None,
+                token_type: None,
+                symbol_table: vec![]
+            },
+            _ => ASTNode {
+                child: vec![i0, i1],
+                token_name: i0.token_name.clone(),
+                value: i0.value.clone(),
+                var_type: i0.var_type.clone(),
+                token_type: None,
+                symbol_table: vec![]
+            },
+        }
+    },
+};
+
+// RELOP_GEN -> ((< | > | <= | >= | == | ! =) NUMEXPRESSION)?
+pub relop_gen: ASTNode = {
+    <i0:relop> <i1:numexpression> => {
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i:epsilon> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+};
+
+// NUMEXPRESSION -> TERM NUMEXPRESSION_GENERATOR
+pub numexpression: ASTNode = {
+    <i0:term> <i1:numexpression_generator> => {
+        let val = match (i0.value, i1.value) {
+            (None, _) => i0.value.clone(),
+            (_, None) => i1.value.clone(),
+            (Some(Value::Unknown), _) => Some(Value::Unknown),
+            (_, Some(Value::Unknown)) => Some(Value::Unknown),
+            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)) => Some(Value::KnownInt(x+y)),
+            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)) => Some(Value::KnownFloat(x+y)),
+            (Some(Value::KnownString(x)), Some(Value::KnownString(y)) => Some(Value::Unknown),
+            (_, _) => panic!("Addop de tipos diferentes"),
+        };
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: i0.token_name.clone(),
+            value: val,
+            var_type: i1.var_type.clone(),
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },  
+};      
+        
+// NUMEXPRESSION_GENERATOR -> ((+ |-) TERM)*
+pub numexpression_generator: ASTNode = {
+    <i:epsilon> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i0:addop> <i1:term> <i2:numexpression_generator>  => {
+        let val = match (i1.value, i2.value) {
+            (None, x) => x.clone(),
+            (x, None) => x.clone(),
+            (Some(Value::Unknown), _) => Some(Value::Unknown),
+            (_, Some(Value::Unknown)) => Some(Value::Unknown),
+            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)) => Some(Value::KnownInt(x+y)),
+            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)) => Some(Value::KnownFloat(x+y)),
+            (Some(Value::KnownString(x)), Some(Value::KnownString(y)) => Some(Value::Unknown),
+            (_, _) => panic!("Addop de tipos diferentes"),
+        };
+        let val = match i0.token_type {
+            TokenType::Expression(Op(Add)) => val,
+            TokenType::Expression(Op(Sub)) => match val {
+                None => Some(Value::Unknown),
+                Some(Value::Unknown) => Some(Value::Unknown),
+                Some(Value::KnownInt(x) => Some(Value::KnownInt(-x) ,
+                Some(Value::KnownFloat(x) => Some(Value::KnownFloat(-x),
+                Some(Value::KnownString(x) => Some(Value::KnownString(x),
+            },
+        }
+        ASTNode {
+            child: vec![i0, i1, i2],
+            token_name: i0.token_name.clone(),
+            value: val,
+            var_type: i1.var_type.clone(),
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+};
+
+// TERM -> UNARYEXPR TERM_GENERATOR
+pub term: ASTNode = {
+    <i0:unaryexpr> <i1:term_generator> => {
+        let val = match (i0.value, i1.value, i1.child[0].token_type) {
+            (None, x, _) => x.clone(),
+            (x, None, _) => x.clone(),
+            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)), Some(TokenType::Expression(MulOp(Mul))))) => Some(Value::KnownInt(x*y)),
+            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)), Some(TokenType::Expression(MulOp(Div))))) => Some(Value::KnownInt(x/y)),
+            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)), Some(TokenType::Expression(MulOp(Mod))))) => Some(Value::KnownInt(x%y)),
+            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)), Some(TokenType::Expression(MulOp(Mul))))) => Some(Value::KnownFloat(x*y)),
+            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)), Some(TokenType::Expression(MulOp(Div))))) => Some(Value::KnownFloat(x/y)),
+            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)), Some(TokenType::Expression(MulOp(Mod))))) => Some(Value::KnownFloat(x%y)),
+            (Some(Value::KnownFloat(_)), Some(Value::KnownInt(_)), _) => panic!("Mulop entre tipos diferentes"),
+            (Some(Value::KnownInt(_)), Some(Value::KnownFloat(_)), _) => panic!("Mulop entre tipos diferentes"),
+            (_, _, _) => Some(Value::Unknown),
+        };
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: i0.token_name.clone(),
+            value: val,
+            var_type: i1.var_type.clone(),
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },  
+}; 
+
+// TERM_GENERATOR -> ((* | / | %) UNARYEXPR)*
+pub term_generator: ASTNode = {
+    <i:epsilon> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i0:mulop> <i1:unaryexpr> <i2:term_generator>  => {
+        let val = match (i1.value, i2.value, i2.child[0].token_type) {
+            (None, x, _) => x.clone(),
+            (x, None, _) => x.clone(),
+            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)), Some(TokenType::Expression(MulOp(Mul))))) => Some(Value::KnownInt(x*y)),
+            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)), Some(TokenType::Expression(MulOp(Div))))) => Some(Value::KnownInt(x/y)),
+            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)), Some(TokenType::Expression(MulOp(Mod))))) => Some(Value::KnownInt(x%y)),
+            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)), Some(TokenType::Expression(MulOp(Mul))))) => Some(Value::KnownFloat(x*y)),
+            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)), Some(TokenType::Expression(MulOp(Div))))) => Some(Value::KnownFloat(x/y)),
+            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)), Some(TokenType::Expression(MulOp(Mod))))) => Some(Value::KnownFloat(x%y)),
+            (Some(Value::KnownFloat(_)), Some(Value::KnownInt(_)), _) => panic!("Mulop entre tipos diferentes"),
+            (Some(Value::KnownInt(_)), Some(Value::KnownFloat(_)), _) => panic!("Mulop entre tipos diferentes"),
+            (_, _, _) => Some(Value::Unknown),
+        };
+        ASTNode {
+            child: vec![i0, i1, i2],
+            token_name: i0.token_name.clone(),
+            value: val,
+            var_type: i1.var_type.clone(),
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+};
+
+
+// UNARYEXPR -> ((+ | -))? FACTOR
+pub unaryexpr: ASTNode = {
+    <i:factor> => {
+        ASTNode {
+            child: vec![i],
+            token_name: i.token_name.clone(),
+            value: i.value.clone(),
+            var_type: i.var_type.clone(),
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i0:addop> <i1:factor> => {
+        let val: Value = match i1.var_type {
+            None => Some(Value::Unknown),
+            Some(VarType::NotDeclared) => Some(Value::Unknown),
+            _ => match i0.token_type {
+                Some(TokenType::Expression(Op(Add))) => i1.value.clone(),
+                Some(TokenType::Expression(Op(Sub))) => match i1.value {
+                    None => Some(Value::Unknown),
+                    Some(Value::Unknown) => Some(Value::Unknown),
+                    Some(Value::KnownInt(x) => Some(Value::KnownInt(-x) ,
+                    Some(Value::KnownFloat(x) => Some(Value::KnownFloat(-x),
+                    Some(Value::KnownString(x) => Some(Value::KnownString(x),
+                },
+                _ => Some(Value::Unknown),
+            } 
+        };
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: i1.token_name.clone(),
+            value: val,
+            var_type: i1.var_type.clone(),
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+};
+
+// FACTOR -> (int_constant | float_constant | string_constant | LVALUE |(NUMEXPRESSION))
+pub factor: ASTNode = {
+    <i:int_constant> => {
+        ASTNode {
+            child: vec![i0],
+            token_name: None,
+            value: i0.value.clone(),
+            var_type: i0.var_type.clone(),
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i:float_constant> => {
+        ASTNode {
+            child: vec![i0],
+            token_name: None,
+            value: i0.value.clone(),
+            var_type: i0.var_type.clone(),
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i:string_constant> => {
+        ASTNode {
+            child: vec![i0],
+            token_name: None,
+            value: i0.value.clone(),
+            var_type: i0.var_type.clone(),
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i:lvalue> => {
+        ASTNode {
+            child: vec![i],
+            token_name: i.token_name.clone(),
+            value: i.value.clone(),
+            var_type: i.var_type.clone(),
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i0:oparenth> <i1:numexpression> <i2:cparenth> => {
+        ASTNode {
+            child: vec![i0, i1, i2],
+            token_name: i1.token_name.clone(),
+            value: i1.value.clone(),
+            var_type: i1.var_type.clone(),
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+};
+
+// LVALUE -> ident allocexpressiondimensions
+pub lvalue: ASTNode = {
+    <i0:ident> <i1:allocexpressiondimensions> => {
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: i0.token_name.clone(),
+            value: i0.value.clone(),
+            var_type: i0.var_type.clone(),
+            token_type: None,
+            symbol_table: vec![],
+        }
+    }
+};
+
+pub ident: ASTNode = {
+    <value:r"[a-zA-Z][a-zA-Z0-9_]*"> => {
+        ASTNode {
+            child: vec![],
+            token_name: Some(value.to_string()),
+            value: Some(Value::Unknown),
+            var_type: Some(VarType::NotDeclared),
+            token_type: Some(TokenType::Expression(Ident(value.to_string()))),
+            symbol_table: vec![],
+        }
+    }
+};
+
+pub int_constant: ASTNode = {
+    <value:r"\d+"> => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: Some(Value::KnownInt(value.into())),
+            var_type: Some(VarType::Int(1)),
+            token_type: Some(TokenType::Expression(IntConst(value.to_string()))),
+            symbol_table: vec![],
+        }
+    }
+}
+
+pub float_constant: ASTNode = {
+    <value:r"\d+\.\d*"> => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: Some(Value::KnownFloat(value.into())),
+            var_type: Some(VarType::Float(1)),
+            token_type: Some(TokenType::Expression(FloatConst(value.to_string()))),
+            symbol_table: vec![],
+        }
+    }
+}
+
+pub string_constant: ASTNode = {
+    <value:r#"".*""#> => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: Some(Value::KnownString(value.to_string())),
+            var_type: Some(VarType::String(1)),
+            token_type: Some(TokenType::Expression(StrConst(value.to_string()))),
+            symbol_table: vec![],
+}
+
+pub semicolon: ASTNode = {
+    ";" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Symbol(Semicolon)),
+            symbol_table: vec![],
+        }
+    }
+};
+
+pub comma: ASTNode = {
+    "," => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Symbol(Comma)),
+            symbol_table: vec![],
+        }
+    }
+};
+
+pub addop: ASTNode = {
+    "+" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Expression(Op(Add))),
+            symbol_table: vec![],
+        }
+    },
+    "-" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Expression(Op(Sub))),
+            symbol_table: vec![],
+        }
+    }
+};
+
+pub mulop: ASTNode = {
+    "*" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Expression(MulOp(Mul))),
+            symbol_table: vec![],
+        }
+    },
+    "/" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Expression(MulOp(Div))),
+            symbol_table: vec![],
+        }
+    },
+    "%" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Expression(MulOp(Mod))),
+            symbol_table: vec![],
+        }
+    }
+};
+
+pub relop: ASTNode = {
+    "==" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Expression(Relop(Equal))),
+            symbol_table: vec![],
+        }
+    },
+    "<>" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Expression(Relop(Diff))),
+            symbol_table: vec![],
+        }
+    },
+    "<" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Expression(Relop(Less))),
+            symbol_table: vec![],
+        }
+    },
+    ">" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Expression(Relop(Greater))),
+            symbol_table: vec![],
+        }
+    },
+    "<=" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Expression(Relop(EqualLess))),
+            symbol_table: vec![],
+        }
+    },
+    ">=" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Expression(Relop(EqualGreater))),
+            symbol_table: vec![],
+        }
+    },
+};
+
+pub vartype: ASTNode = {
+    "int" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::ReservedWord(Int)),
+            symbol_table: vec![],
+        }
+    },
+    "string" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::ReservedWord(String)),
+            symbol_table: vec![],
+        }
+    },
+    "float" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::ReservedWord(Float)),
+            symbol_table: vec![],
+        }
+    }
+}
+
+pub attrib: ASTNode = {
+    "=" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Symbol(Attrib)),
+            symbol_table: vec![],
+        }
+    }
+}
+
+pub oparenth: ASTNode = {
+    "(" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Symbol(OParenth)),
+            symbol_table: vec![],
+        }
+    }
+} 
+pub cparenth: ASTNode = {
+    ")" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Symbol(CParenth)),
+            symbol_table: vec![],
+        }
+    }
+} 
+pub obrack: ASTNode = {
+    "[" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Symbol(OBrack)),
+            symbol_table: vec![],
+        }
+    }
+} 
+pub cbrack: ASTNode = {
+    "]" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Symbol(CBrack)),
+            symbol_table: vec![],
+        }
+    }
+}
+pub ocurly: ASTNode = {
+    "{" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Symbol(OCurly)),
+            symbol_table: vec![],
+        }
+    }
+}
+pub ccurly: ASTNode = {
+    "}" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Symbol(CCurly)),
+            symbol_table: vec![],
+        }
+    }
+}
+pub epsilon: ASTNode = {
+    () => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::Symbol(Epsilon)),
+            symbol_table: vec![],
+        }
+    }
+}
+
+pub def_word: ASTNode = {
+    "def" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::ReservedWord(Def)),
+            symbol_table: vec![],
+        }
+    }
+}
+
+pub for_word: ASTNode = {
+    "for" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::ReservedWord(For)),
+            symbol_table: vec![],
+        }
+    }
+}
+
+pub if_word: ASTNode = {
+    "if" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::ReservedWord(If)),
+            symbol_table: vec![],
+        }
+    }
+}
+
+pub else_word: ASTNode = {
+    "else" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::ReservedWord(Else)),
+            symbol_table: vec![],
+        }
+    }
+}
+
+pub return_word: ASTNode = {
+    "return" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::ReservedWord(Return)),
+            symbol_table: vec![],
+        }
+    }
+}
+
+pub break_word: ASTNode = {
+    "break" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::ReservedWord(Break)),
+            symbol_table: vec![],
+        }
+    }
+}
+
+pub new_word: ASTNode = {
+    "new" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::ReservedWord(New)),
+            symbol_table: vec![],
+        }
+    }
+}
+
+pub print_word: ASTNode = {
+    "print" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::ReservedWord(Print)),
+            symbol_table: vec![],
+        }
+    }
+}
+
+pub read_word: ASTNode = {
+    "read" => {
+        ASTNode {
+            child: vec![],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: Some(TokenType::ReservedWord(Read)),
+            symbol_table: vec![],
+        }
+    }
+}
