@@ -45,7 +45,7 @@ pub enum Value {
     Unknown,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum VarType {
     Int(i32),
     Float(i32),

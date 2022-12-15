@@ -4,6 +4,7 @@ use crate::language_definition::{Token, TokenType};
 use lalrpop_util::lalrpop_mod;
 
 lalrpop_mod!(pub grammar); // synthesized by LALRPOP
+lalrpop_mod!(pub grammar_tree); // synthesized by LALRPOP
 
 pub struct SymbolTable {
     tokens: Vec<Token>,
@@ -60,7 +61,7 @@ mod tests {
 
     fn _test_code_file(filename: &str) {
         let contents = fs::read_to_string(filename).unwrap();
-        let result = grammar::fileParser::new().parse(&contents);
+        let result = grammar_tree::fileParser::new().parse(&contents);
         println!("{:?}", result);
         assert!(result.is_ok());
     }
