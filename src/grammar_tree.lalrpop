@@ -6,6 +6,11 @@ use crate::language_definition::{
     RelopType::*,
     OpType::*,
     MulOpType::*,
+    Symbol::*
+    Value::*;
+    VarType::*;
+    AST::*;
+    ASTNode::*;
 };
 
 grammar;
@@ -97,7 +102,7 @@ pub funclisttail: ASTNode = {
     },
 };
 
-// FUNCDEF -> def ident(PARAMLIST){STATELIST }
+// FUNCDEF -> def ident(PARAMLIST){STATELIST};
 pub funcdef: ASTNode = {
     <i0:def_word> <i1:ident> <i2:oparenth> <i3:paramlist> <i4:cparenth> <i5:ocurly> <i6:statelist> <i7:ccurly> => {
         ASTNode {
@@ -111,7 +116,7 @@ pub funcdef: ASTNode = {
     },
 };
 
-// PARAMLIST -> ((int | float | string) ident, PARAMLIST | (int | float | string) ident)?
+// PARAMLIST -> ((int | float | string) ident, PARAMLIST) | (int | float | string) ident))?
 pub paramlist: ASTNode = {
     <i0:firstparam> <i1:otherparam> => {
         ASTNode {
@@ -123,43 +128,166 @@ pub paramlist: ASTNode = {
             symbol_table: vec![],
         }
     },
-    <i:epsilon> => vec![i],
+    <i:epsilon> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
 };
 
 pub firstparam: ASTNode = {
     <i0:vartype> <i1:ident> => {
-        vec![i0]
-        .into_iter()
-        .chain(vec![i1].into_iter())
-        .collect::<ASTNode>()
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
     },
 };
 
 pub otherparam: ASTNode = {
     <i0:comma> <i1:vartype> <i2:ident> <i3:otherparam> => {
-        vec![i0]
-        .into_iter()
-        .chain(vec![i1].into_iter())
-        .chain(vec![i2].into_iter())
-        .chain(i3.into_iter())
-        .collect::<ASTNode>()
+        ASTNode {
+            child: vec![i0, i1, i2, i3],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
     },
-    <i:epsilon> => vec![i],
+    <i:epsilon> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
 };
 
 // STATEMENT -> (VARDECL; | ATRIBSTAT; |  PRINTSTAT; | READSTAT; | RETURNSTAT; | IFSTAT | FORSTAT | {STATELIST } | break; |;)
 pub statement: ASTNode = {
-    <i0:vardecl> <i1:semicolon> => i0.into_iter().chain(vec![i1].into_iter()).collect::<ASTNode>(),
-    <i0:attribstat> <i1:semicolon> => i0.into_iter().chain(vec![i1].into_iter()).collect::<ASTNode>(),
-    <i0:printstat> <i1:semicolon> => i0.into_iter().chain(vec![i1].into_iter()).collect::<ASTNode>(),
-    <i0:readstat> <i1:semicolon> => i0.into_iter().chain(vec![i1].into_iter()).collect::<ASTNode>(),
-    <i0:returnstat> <i1:semicolon> => i0.into_iter().chain(vec![i1].into_iter()).collect::<ASTNode>(),
-    <i0:funccall> <i1:semicolon> => i0.into_iter().chain(vec![i1].into_iter()).collect::<ASTNode>(),
-    <i:ifstat> => i,
-    <i:forstat> => i,
-    <i0:ocurly> <i1:statelist> <i2:ccurly> => vec![i0].into_iter().chain(i1.into_iter()).chain(vec![i2].into_iter()).collect::<ASTNode>(),
-    <i0:break_word> <i1:semicolon> => vec![i0].into_iter().chain(vec![i1].into_iter()).collect::<ASTNode>(),
-    <i:semicolon> => vec![i],
+    <i0:vardecl> <i1:semicolon> => {
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i0:attribstat> <i1:semicolon> => {
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i0:printstat> <i1:semicolon> => {
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i0:readstat> <i1:semicolon> => {
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i0:returnstat> <i1:semicolon> => {
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i0:funccall> <i1:semicolon> => {
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i:ifstat> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i:forstat> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i0:ocurly> <i1:statelist> <i2:ccurly> => {
+        ASTNode {
+            child: vec![i0, i1, i2],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i0:break_word> <i1:semicolon> => {
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i:semicolon> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
 };
 
 // VARDECL -> (int | float | string) ident DIMENSIONS
@@ -226,12 +354,14 @@ pub attribstat: ASTNode = {
             value: i2.value.clone(),
             var_type: i0.var_type.clone(),
             token_type: None,
-            symbol_table: vec![Symbol {
-                token_name: i0.token_name.clone(),
-                value: i2.value.clone(),
-                var_type: i0.var_type.clone(),
-                scope: None,
-            }],
+            symbol_table: vec![
+                Symbol {
+                    token_name: i0.token_name.clone(),
+                    value: i2.value.clone(),
+                    var_type: i0.var_type.clone(),
+                    scope: None,
+                }
+            ],
         }
     },
 };
@@ -272,92 +402,193 @@ pub rvalue: ASTNode = {
 
 // FUNCCALL -> ident(PARAMLISTCALL)
 pub funccall: ASTNode = {
-    <i0:ident> <i1:oparenth> <i2:paramlistcall> <i3:cparenth> => vec![i0].into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).chain(vec![i3].into_iter()).collect::<ASTNode>(),     
+    <i0:ident> <i1:oparenth> <i2:paramlistcall> <i3:cparenth> => {
+        ASTNode {
+            child: vec![i0, i1, i2, i3],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },     
 };      
         
 // PARAMLISTCALL -> (ident, PARAMLISTCALL | ident)?
 pub paramlistcall: ASTNode = {
-    <i0:ident> <i1:otherparamlistcall> => vec![i0].into_iter().chain(i1.into_iter()).collect::<ASTNode>(),
-    <i:epsilon> => vec![i],
+    <i0:ident> <i1:otherparamlistcall> => {
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i:epsilon> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
 };
 
 pub otherparamlistcall: ASTNode = {
-    <i0:comma> <i1:ident> <i2:otherparamlistcall> => vec![i0].into_iter().chain(vec![i1].into_iter()).chain(i2.into_iter()).collect::<ASTNode>(),
-    <i:epsilon> => vec![i],
+    <i0:comma> <i1:ident> <i2:otherparamlistcall> => {
+        ASTNode {
+            child: vec![i0, i1, i2],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i:epsilon> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
 };
 
 // PRINTSTAT -> print EXPRESSION
 pub printstat: ASTNode = {
-    <i0:print_word> <i1:expression> => vec![i0].into_iter().chain(i1.into_iter()).collect::<ASTNode>(),
+    <i0:print_word> <i1:expression> => {
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
 };
 
 // READSTAT -> read LVALUE
 pub readstat: ASTNode = {
-    <i0:read_word> <i1:lvalue> => vec![i0].into_iter().chain(i1.into_iter()).collect::<ASTNode>(),
-}
+    <i0:read_word> <i1:lvalue> => {
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+};
 
 // RETURNSTAT -> return
 pub returnstat: ASTNode = {
-    <i0:return_word> <i1:returnexpression> => vec![i0].into_iter().chain(i1.into_iter()).collect::<ASTNode>(),
+    <i0:return_word> <i1:returnexpression> => {
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
 };
 
 pub returnexpression: ASTNode = {
-    <i:expression> => i,
-    <i:epsilon> => vec![i],
+    <i:expression> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i:epsilon> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
 };
 
 // IFSTAT -> if (EXPRESSION) STATEMENT ELSE_GEN
 pub ifstat: ASTNode = {
     <i0:if_word> <i1:oparenth> <i2:expression> <i3:cparenth> <i4:ocurly> <i5:statelist> <i6:ccurly> <i7:else_gen> => {
-        vec![i0]
-        .into_iter()
-        .chain(vec![i1].into_iter())
-        .chain(i2.into_iter())
-        .chain(vec![i3].into_iter())
-        .chain(vec![i4].into_iter())
-        .chain(i5.into_iter())
-        .chain(vec![i6].into_iter())
-        .chain(i7.into_iter())
-        .collect::<ASTNode>()
+        ASTNode {
+            child: vec![i0, i1, i2, i3, i4, i5, i6, i7],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
     },
 };
 
 // ELSE_GEN -> (else {STATELIST})?
 pub else_gen: ASTNode = {
-    <i0:epsilon> => vec![i0],
-    <i0:else_word> <i1:ocurly> <i2:statelist> <i3:ccurly> => 
-        vec![i0]
-        .into_iter()
-        .chain(vec![i1].into_iter())
-        .chain(i2.into_iter())
-        .chain(vec![i3].into_iter())
-        .collect::<ASTNode>()
+    <i:epsilon> => {
+        ASTNode {
+            child: vec![i],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
+    <i0:else_word> <i1:ocurly> <i2:statelist> <i3:ccurly> => {
+        ASTNode {
+            child: vec![i0, i1, i2, i3],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
+    },
 };
 
 // FORSTAT -> for(ATRIBSTAT; EXPRESSION; ATRIBSTAT) STATEMENT
 pub forstat: ASTNode = {
     <i0:for_word> <i1:oparenth> <i2:attribstat> <i3:semicolon> <i4:expression> <i5:semicolon> <i6:attribstat> <i7:cparenth> <i8:statement> => {
-        vec![i0]
-        .into_iter()
-        .chain(vec![i1].into_iter())
-        .chain(i2.into_iter())
-        .chain(vec![i3].into_iter())
-        .chain(i4.into_iter())
-        .chain(vec![i5].into_iter())
-        .chain(i6.into_iter())
-        .chain(vec![i7].into_iter())
-        .chain(i8.into_iter())
-        .collect::<ASTNode>()
+        ASTNode {
+            child: vec![i0, i1, i2, i3, i4, i5, i6, i7, i8],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
     },
 };
 
 // STATELIST -> STATEMENT (STATELIST)?
 pub statelist: ASTNode = {
     <i0:statement> <i1:statelisttail> => {
-        i0
-        .into_iter()
-        .chain(i1.into_iter())
-        .collect::<ASTNode>()
+        ASTNode {
+            child: vec![i0, i1],
+            token_name: None,
+            value: None,
+            var_type: None,
+            token_type: None,
+            symbol_table: vec![],
+        }
     },
 };
 
@@ -490,9 +721,9 @@ pub numexpression: ASTNode = {
             (_, None) => i1.value.clone(),
             (Some(Value::Unknown), _) => Some(Value::Unknown),
             (_, Some(Value::Unknown)) => Some(Value::Unknown),
-            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)) => Some(Value::KnownInt(x+y)),
-            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)) => Some(Value::KnownFloat(x+y)),
-            (Some(Value::KnownString(x)), Some(Value::KnownString(y)) => Some(Value::Unknown),
+            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y))) => Some(Value::KnownInt(x+y)),
+            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y))) => Some(Value::KnownFloat(x+y)),
+            (Some(Value::KnownString(x)), Some(Value::KnownString(y))) => Some(Value::Unknown),
             (_, _) => panic!("Addop de tipos diferentes"),
         };
         ASTNode {
@@ -518,15 +749,15 @@ pub numexpression_generator: ASTNode = {
             symbol_table: vec![],
         }
     },
-    <i0:addop> <i1:term> <i2:numexpression_generator>  => {
+    <i0:addop> <i1:term> <i2:numexpression_generator> => {
         let val = match (i1.value, i2.value) {
             (None, x) => x.clone(),
             (x, None) => x.clone(),
             (Some(Value::Unknown), _) => Some(Value::Unknown),
             (_, Some(Value::Unknown)) => Some(Value::Unknown),
-            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)) => Some(Value::KnownInt(x+y)),
-            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)) => Some(Value::KnownFloat(x+y)),
-            (Some(Value::KnownString(x)), Some(Value::KnownString(y)) => Some(Value::Unknown),
+            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y))) => Some(Value::KnownInt(x+y)),
+            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y))) => Some(Value::KnownFloat(x+y)),
+            (Some(Value::KnownString(x)), Some(Value::KnownString(y))) => Some(Value::Unknown),
             (_, _) => panic!("Addop de tipos diferentes"),
         };
         let val = match i0.token_type {
@@ -534,9 +765,9 @@ pub numexpression_generator: ASTNode = {
             TokenType::Expression(Op(Sub)) => match val {
                 None => Some(Value::Unknown),
                 Some(Value::Unknown) => Some(Value::Unknown),
-                Some(Value::KnownInt(x) => Some(Value::KnownInt(-x) ,
-                Some(Value::KnownFloat(x) => Some(Value::KnownFloat(-x),
-                Some(Value::KnownString(x) => Some(Value::KnownString(x),
+                Some(Value::KnownInt(x)) => Some(Value::KnownInt(-x)) ,
+                Some(Value::KnownFloat(x)) => Some(Value::KnownFloat(-x)),
+                Some(Value::KnownString(x)) => Some(Value::KnownString(x)),
             },
         }
         ASTNode {
@@ -556,12 +787,12 @@ pub term: ASTNode = {
         let val = match (i0.value, i1.value, i1.child[0].token_type) {
             (None, x, _) => x.clone(),
             (x, None, _) => x.clone(),
-            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)), Some(TokenType::Expression(MulOp(Mul))))) => Some(Value::KnownInt(x*y)),
-            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)), Some(TokenType::Expression(MulOp(Div))))) => Some(Value::KnownInt(x/y)),
-            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)), Some(TokenType::Expression(MulOp(Mod))))) => Some(Value::KnownInt(x%y)),
-            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)), Some(TokenType::Expression(MulOp(Mul))))) => Some(Value::KnownFloat(x*y)),
-            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)), Some(TokenType::Expression(MulOp(Div))))) => Some(Value::KnownFloat(x/y)),
-            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)), Some(TokenType::Expression(MulOp(Mod))))) => Some(Value::KnownFloat(x%y)),
+            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)), Some(TokenType::Expression(MulOp(Mul)))) => Some(Value::KnownInt(x*y)),
+            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)), Some(TokenType::Expression(MulOp(Div)))) => Some(Value::KnownInt(x/y)),
+            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)), Some(TokenType::Expression(MulOp(Mod)))) => Some(Value::KnownInt(x%y)),
+            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)), Some(TokenType::Expression(MulOp(Mul)))) => Some(Value::KnownFloat(x*y)),
+            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)), Some(TokenType::Expression(MulOp(Div)))) => Some(Value::KnownFloat(x/y)),
+            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)), Some(TokenType::Expression(MulOp(Mod)))) => Some(Value::KnownFloat(x%y)),
             (Some(Value::KnownFloat(_)), Some(Value::KnownInt(_)), _) => panic!("Mulop entre tipos diferentes"),
             (Some(Value::KnownInt(_)), Some(Value::KnownFloat(_)), _) => panic!("Mulop entre tipos diferentes"),
             (_, _, _) => Some(Value::Unknown),
@@ -589,16 +820,16 @@ pub term_generator: ASTNode = {
             symbol_table: vec![],
         }
     },
-    <i0:mulop> <i1:unaryexpr> <i2:term_generator>  => {
+    <i0:mulop> <i1:unaryexpr> <i2:term_generator> => {
         let val = match (i1.value, i2.value, i2.child[0].token_type) {
             (None, x, _) => x.clone(),
             (x, None, _) => x.clone(),
-            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)), Some(TokenType::Expression(MulOp(Mul))))) => Some(Value::KnownInt(x*y)),
-            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)), Some(TokenType::Expression(MulOp(Div))))) => Some(Value::KnownInt(x/y)),
-            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)), Some(TokenType::Expression(MulOp(Mod))))) => Some(Value::KnownInt(x%y)),
-            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)), Some(TokenType::Expression(MulOp(Mul))))) => Some(Value::KnownFloat(x*y)),
-            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)), Some(TokenType::Expression(MulOp(Div))))) => Some(Value::KnownFloat(x/y)),
-            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)), Some(TokenType::Expression(MulOp(Mod))))) => Some(Value::KnownFloat(x%y)),
+            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)), Some(TokenType::Expression(MulOp(Mul)))) => Some(Value::KnownInt(x*y)),
+            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)), Some(TokenType::Expression(MulOp(Div)))) => Some(Value::KnownInt(x/y)),
+            (Some(Value::KnownInt(x)), Some(Value::KnownInt(y)), Some(TokenType::Expression(MulOp(Mod)))) => Some(Value::KnownInt(x%y)),
+            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)), Some(TokenType::Expression(MulOp(Mul)))) => Some(Value::KnownFloat(x*y)),
+            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)), Some(TokenType::Expression(MulOp(Div)))) => Some(Value::KnownFloat(x/y)),
+            (Some(Value::KnownFloat(x)), Some(Value::KnownFloat(y)), Some(TokenType::Expression(MulOp(Mod)))) => Some(Value::KnownFloat(x%y)),
             (Some(Value::KnownFloat(_)), Some(Value::KnownInt(_)), _) => panic!("Mulop entre tipos diferentes"),
             (Some(Value::KnownInt(_)), Some(Value::KnownFloat(_)), _) => panic!("Mulop entre tipos diferentes"),
             (_, _, _) => Some(Value::Unknown),
@@ -628,7 +859,7 @@ pub unaryexpr: ASTNode = {
         }
     },
     <i0:addop> <i1:factor> => {
-        let val: Value = match i1.var_type {
+        let val = match i1.var_type {
             None => Some(Value::Unknown),
             Some(VarType::NotDeclared) => Some(Value::Unknown),
             _ => match i0.token_type {
@@ -636,12 +867,11 @@ pub unaryexpr: ASTNode = {
                 Some(TokenType::Expression(Op(Sub))) => match i1.value {
                     None => Some(Value::Unknown),
                     Some(Value::Unknown) => Some(Value::Unknown),
-                    Some(Value::KnownInt(x) => Some(Value::KnownInt(-x) ,
-                    Some(Value::KnownFloat(x) => Some(Value::KnownFloat(-x),
-                    Some(Value::KnownString(x) => Some(Value::KnownString(x),
+                    Some(Value::KnownInt(x)) => Some(Value::KnownInt(-x)) ,
+                    Some(Value::KnownFloat(x)) => Some(Value::KnownFloat(-x)),
+                    Some(Value::KnownString(x)) => Some(Value::KnownString(x)),
                 },
-                _ => Some(Value::Unknown),
-            } 
+            }
         };
         ASTNode {
             child: vec![i0, i1],
@@ -746,7 +976,7 @@ pub int_constant: ASTNode = {
             symbol_table: vec![],
         }
     }
-}
+};
 
 pub float_constant: ASTNode = {
     <value:r"\d+\.\d*"> => {
@@ -759,7 +989,7 @@ pub float_constant: ASTNode = {
             symbol_table: vec![],
         }
     }
-}
+};
 
 pub string_constant: ASTNode = {
     <value:r#"".*""#> => {
@@ -770,7 +1000,9 @@ pub string_constant: ASTNode = {
             var_type: Some(VarType::String(1)),
             token_type: Some(TokenType::Expression(StrConst(value.to_string()))),
             symbol_table: vec![],
-}
+        }
+    }
+};
 
 pub semicolon: ASTNode = {
     ";" => {
@@ -948,7 +1180,7 @@ pub vartype: ASTNode = {
             symbol_table: vec![],
         }
     }
-}
+};
 
 pub attrib: ASTNode = {
     "=" => {
@@ -961,7 +1193,7 @@ pub attrib: ASTNode = {
             symbol_table: vec![],
         }
     }
-}
+};
 
 pub oparenth: ASTNode = {
     "(" => {
@@ -974,7 +1206,8 @@ pub oparenth: ASTNode = {
             symbol_table: vec![],
         }
     }
-} 
+};
+
 pub cparenth: ASTNode = {
     ")" => {
         ASTNode {
@@ -986,7 +1219,8 @@ pub cparenth: ASTNode = {
             symbol_table: vec![],
         }
     }
-} 
+};
+
 pub obrack: ASTNode = {
     "[" => {
         ASTNode {
@@ -998,7 +1232,8 @@ pub obrack: ASTNode = {
             symbol_table: vec![],
         }
     }
-} 
+};
+
 pub cbrack: ASTNode = {
     "]" => {
         ASTNode {
@@ -1010,7 +1245,7 @@ pub cbrack: ASTNode = {
             symbol_table: vec![],
         }
     }
-}
+};
 pub ocurly: ASTNode = {
     "{" => {
         ASTNode {
@@ -1022,7 +1257,7 @@ pub ocurly: ASTNode = {
             symbol_table: vec![],
         }
     }
-}
+};
 pub ccurly: ASTNode = {
     "}" => {
         ASTNode {
@@ -1034,7 +1269,7 @@ pub ccurly: ASTNode = {
             symbol_table: vec![],
         }
     }
-}
+};
 pub epsilon: ASTNode = {
     () => {
         ASTNode {
@@ -1046,7 +1281,7 @@ pub epsilon: ASTNode = {
             symbol_table: vec![],
         }
     }
-}
+};
 
 pub def_word: ASTNode = {
     "def" => {
@@ -1059,7 +1294,7 @@ pub def_word: ASTNode = {
             symbol_table: vec![],
         }
     }
-}
+};
 
 pub for_word: ASTNode = {
     "for" => {
@@ -1072,7 +1307,7 @@ pub for_word: ASTNode = {
             symbol_table: vec![],
         }
     }
-}
+};
 
 pub if_word: ASTNode = {
     "if" => {
@@ -1085,7 +1320,7 @@ pub if_word: ASTNode = {
             symbol_table: vec![],
         }
     }
-}
+};
 
 pub else_word: ASTNode = {
     "else" => {
@@ -1098,7 +1333,7 @@ pub else_word: ASTNode = {
             symbol_table: vec![],
         }
     }
-}
+};
 
 pub return_word: ASTNode = {
     "return" => {
@@ -1111,7 +1346,7 @@ pub return_word: ASTNode = {
             symbol_table: vec![],
         }
     }
-}
+};
 
 pub break_word: ASTNode = {
     "break" => {
@@ -1124,7 +1359,7 @@ pub break_word: ASTNode = {
             symbol_table: vec![],
         }
     }
-}
+};
 
 pub new_word: ASTNode = {
     "new" => {
@@ -1137,7 +1372,7 @@ pub new_word: ASTNode = {
             symbol_table: vec![],
         }
     }
-}
+};
 
 pub print_word: ASTNode = {
     "print" => {
@@ -1150,7 +1385,7 @@ pub print_word: ASTNode = {
             symbol_table: vec![],
         }
     }
-}
+};
 
 pub read_word: ASTNode = {
     "read" => {
@@ -1163,4 +1398,4 @@ pub read_word: ASTNode = {
             symbol_table: vec![],
         }
     }
-}
+};

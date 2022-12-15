@@ -52,7 +52,7 @@ pub enum VarType {
     String(i32),
     NotDeclared,
 }
-#[derive(Debug, Clone)]
+
 impl TokenType {
     pub fn get_value(&self) -> String {
         use ExpressionType::*;
